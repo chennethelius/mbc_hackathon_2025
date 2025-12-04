@@ -1,0 +1,110 @@
+.profile-prompt {
+  background: white;
+  border-radius: 16px;
+  padding: 3rem 2.5rem;
+  width: 90%;
+  max-width: 450px;
+  text-align: center;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.prompt-icon {
+  font-size: 4rem;
+  margin-bottom: 1rem;
+  animation: bounce 0.6s ease;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.profile-prompt h2 {
+  margin: 0 0 1rem 0;
+  font-size: 1.75rem;
+  color: #333;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.profile-prompt p {
+  color: #666;
+  font-size: 1.1rem;
+  line-height: 1.6;
+  margin-bottom: 2rem;
+}
+
+.prompt-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.btn-complete, .btn-later {
+  padding: 0.85rem 2rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.btn-complete {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+
+.btn-complete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(102, 126, 234, 0.5);
+}
+
+.btn-later {
+  background-color: #f5f5f5;
+  color: #666;
+}
+
+.btn-later:hover {
+  background-color: #e8e8e8;
+  color: #333;
+}
+
+@media (max-width: 768px) {
+  .profile-prompt {
+    padding: 2rem 1.5rem;
+    max-width: 90%;
+  }
+
+  .prompt-icon {
+    font-size: 3rem;
+  }
+
+  .profile-prompt h2 {
+    font-size: 1.5rem;
+  }
+
+  .profile-prompt p {
+    font-size: 1rem;
+  }
+}
+

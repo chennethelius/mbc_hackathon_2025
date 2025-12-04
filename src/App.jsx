@@ -1,11 +1,16 @@
 import { useState, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Navbar from './components/Navbar';
+import ProfilePrompt from './components/ProfilePrompt';
+import Home from './pages/Home';
+import Settings from './pages/Settings';
 import { supabase } from './services/supabase';
 import './App.css';
 
 function App() {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [showProfilePrompt, setShowProfilePrompt] = useState(false);
 
   useEffect(() => {
     // Check current session
@@ -17,8 +22,17 @@ function App() {
     // Listen for auth changes
     const {
       data: { subscription },
-    } = supabase.auth.onAuthStateChange((_event, session) => {
-      setUser(session?.user ?? null);
+    } = supabase.auth.onAuthStateChange((event, session) => {
+      const newUser = session?.user ?? null;
+      setUser(newUser);
+      
+      // Show profile prompt on sign in if user hasn't dismissed it before
+      if (event === 'SIGNED_IN' && newUser) {
+        const hasSeenPrompt = localStorage.getItem(`profile_prompt_seen_${newUser.id}`);
+        if (!hasSeenPrompt) {
+          setShowProfilePrompt(true);
+        }
+      }
     });
 
     return () => subscription.unsubscribe();
@@ -65,6 +79,13 @@ function App() {
     }
   };
 
+  const handleDismissPrompt = () => {
+    setShowProfilePrompt(false);
+    if (user) {
+      localStorage.setItem(`profile_prompt_seen_${user.id}`, 'true');
+    }
+  };
+
   if (loading) {
     return (
       <div style={{ 
@@ -81,37 +102,26 @@ function App() {
   }
 
   return (
-    <>
-      <Navbar user={user} onLogin={handleLogin} onLogout={handleLogout} />
-      <div className="main-content">
-        <div className="welcome-section">
-          <h1>Welcome to MBC Hackathon 2025</h1>
-          {user ? (
-            <div className="user-info">
-              <p className="success-text">✓ You are logged in as <strong>{user.user_metadata?.full_name || user.email}</strong></p>
-              <div className="user-details">
-                {user.user_metadata?.full_name && (
-                  <>
-                    <p><strong>Name:</strong> {user.user_metadata.full_name}</p>
-                    {user.user_metadata?.first_name && user.user_metadata?.last_name && (
-                      <p><strong>First Name:</strong> {user.user_metadata.first_name} | <strong>Last Name:</strong> {user.user_metadata.last_name}</p>
-                    )}
-                  </>
-                )}
-                <p><strong>Email:</strong> {user.email}</p>
-                <p><strong>User ID:</strong> {user.id}</p>
-                <p><strong>Account Created:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
-              </div>
-            </div>
-          ) : (
-            <div className="login-prompt">
-              <p>Please log in to continue</p>
-              <p className="hint">Click the "Login" button in the top right corner to get started</p>
-            </div>
-          )}
-        </div>
+    <Router>
+      <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <Navbar 
+          user={user} 
+          onLogin={handleLogin} 
+          onLogout={handleLogout}
+        />
+        
+        <Routes>
+          <Route path="/" element={<Home user={user} />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+
+        {showProfilePrompt && (
+          <ProfilePrompt
+            onDismiss={handleDismissPrompt}
+          />
+        )}
       </div>
-    </>
+    </Router>
   );
 }
 
