@@ -74,6 +74,9 @@ function App() {
     try {
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
+      // Clear user state and navigate to home
+      setUser(null);
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
     }

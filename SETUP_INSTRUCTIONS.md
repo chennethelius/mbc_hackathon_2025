@@ -88,10 +88,51 @@ Then open your browser to the URL shown (usually http://localhost:5173)
 
 ---
 
+## 🗄️ Step 5: Create the Profiles Table in Supabase
+
+To enable profile features (university, grade, location, bio), you need to create a profiles table:
+
+1. In your Supabase Dashboard, go to **SQL Editor** in the left sidebar
+2. Click **New query**
+3. Copy and paste this SQL:
+
+```sql
+-- Create profiles table
+create table profiles (
+  id uuid references auth.users on delete cascade primary key,
+  university text,
+  grade text,
+  location text,
+  bio text,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
+-- Enable Row Level Security
+alter table profiles enable row level security;
+
+-- Create policies
+create policy "Users can view their own profile"
+  on profiles for select
+  using (auth.uid() = id);
+
+create policy "Users can update their own profile"
+  on profiles for update
+  using (auth.uid() = id);
+
+create policy "Users can insert their own profile"
+  on profiles for insert
+  with check (auth.uid() = id);
+```
+
+4. Click **Run** to execute the query
+5. You should see "Success. No rows returned" message
+
+---
+
 ## 📚 Next Steps
 
 Once your login is working, you can:
-- Create a profiles table in Supabase to store user data
 - Add password reset functionality
 - Implement OAuth (Google, GitHub, etc.)
 - Build protected routes that require authentication
