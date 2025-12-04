@@ -3,11 +3,17 @@ import './LoginModal.css';
 
 function LoginModal({ onClose, onLogin }) {
   const [isSignup, setIsSignup] = useState(false);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
+
+  const isValidEduEmail = email.trim() === '' || email.toLowerCase().endsWith('.edu');
+  const showEmailError = emailTouched && email.trim() !== '' && !email.toLowerCase().endsWith('.edu');
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -15,17 +21,16 @@ function LoginModal({ onClose, onLogin }) {
     setError('');
     setSuccessMessage('');
 
+    // Validate .edu email
+    if (!email.toLowerCase().endsWith('.edu')) {
+      setError('Please use a valid .edu email address');
+      setLoading(false);
+      return;
+    }
+
     try {
-      await onLogin(email, password, isSignup);
-      
-      if (isSignup) {
-        setSuccessMessage('Account created! Please check your email for confirmation.');
-        setEmail('');
-        setPassword('');
-        // Don't close modal so user can see the success message
-      } else {
-        onClose();
-      }
+      await onLogin(email, password, isSignup, firstName, lastName);
+      onClose();
     } catch (err) {
       setError(err.message || 'An error occurred. Please try again.');
     } finally {
@@ -42,6 +47,36 @@ function LoginModal({ onClose, onLogin }) {
         </div>
         
         <form onSubmit={handleSubmit}>
+          {isSignup && (
+            <>
+              <div className="form-group">
+                <label htmlFor="firstName">First Name</label>
+                <input
+                  id="firstName"
+                  type="text"
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                  required
+                  placeholder="Enter your first name"
+                  autoComplete="given-name"
+                />
+              </div>
+              
+              <div className="form-group">
+                <label htmlFor="lastName">Last Name</label>
+                <input
+                  id="lastName"
+                  type="text"
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                  required
+                  placeholder="Enter your last name"
+                  autoComplete="family-name"
+                />
+              </div>
+            </>
+          )}
+          
           <div className="form-group">
             <label htmlFor="email">Email</label>
             <input
@@ -49,10 +84,13 @@ function LoginModal({ onClose, onLogin }) {
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setEmailTouched(true)}
               required
-              placeholder="Enter your email"
+              placeholder="Enter your .edu email"
               autoComplete="email"
+              className={showEmailError ? 'input-error' : ''}
             />
+            <small className="form-hint">Must be a valid .edu email address</small>
           </div>
           
           <div className="form-group">
@@ -86,8 +124,11 @@ function LoginModal({ onClose, onLogin }) {
             type="button"
             onClick={() => {
               setIsSignup(!isSignup);
+              setFirstName('');
+              setLastName('');
               setError('');
               setSuccessMessage('');
+              setEmailTouched(false);
             }}
             className="btn-link"
           >

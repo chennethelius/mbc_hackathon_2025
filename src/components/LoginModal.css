@@ -103,6 +103,15 @@
   border-color: #667eea;
 }
 
+.form-group input.input-error {
+  border-color: #d32f2f;
+  background-color: #ffebee;
+}
+
+.form-group input.input-error:focus {
+  border-color: #d32f2f;
+}
+
 .form-hint {
   display: block;
   margin-top: 0.25rem;

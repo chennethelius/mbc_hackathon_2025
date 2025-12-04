@@ -24,12 +24,19 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  const handleLogin = async (email, password, isSignup) => {
+  const handleLogin = async (email, password, isSignup, firstName, lastName) => {
     try {
       if (isSignup) {
         const { data, error } = await supabase.auth.signUp({
           email,
           password,
+          options: {
+            data: {
+              first_name: firstName,
+              last_name: lastName,
+              full_name: `${firstName} ${lastName}`,
+            },
+          },
         });
         if (error) throw error;
         
@@ -81,10 +88,18 @@ function App() {
           <h1>Welcome to MBC Hackathon 2025</h1>
           {user ? (
             <div className="user-info">
-              <p className="success-text">✓ You are logged in as <strong>{user.email}</strong></p>
+              <p className="success-text">✓ You are logged in as <strong>{user.user_metadata?.full_name || user.email}</strong></p>
               <div className="user-details">
+                {user.user_metadata?.full_name && (
+                  <>
+                    <p><strong>Name:</strong> {user.user_metadata.full_name}</p>
+                    {user.user_metadata?.first_name && user.user_metadata?.last_name && (
+                      <p><strong>First Name:</strong> {user.user_metadata.first_name} | <strong>Last Name:</strong> {user.user_metadata.last_name}</p>
+                    )}
+                  </>
+                )}
+                <p><strong>Email:</strong> {user.email}</p>
                 <p><strong>User ID:</strong> {user.id}</p>
-                <p><strong>Email Confirmed:</strong> {user.email_confirmed_at ? '✓ Yes' : '✗ No (check your email)'}</p>
                 <p><strong>Account Created:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
               </div>
             </div>

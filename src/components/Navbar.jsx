@@ -14,7 +14,7 @@ function Navbar({ user, onLogin, onLogout }) {
         <div className="navbar-actions">
           {user ? (
             <div className="user-menu">
-              <span className="user-email">Welcome, {user.email}</span>
+              <span className="user-email">Welcome, {user.user_metadata?.full_name || user.email}</span>
               <button onClick={onLogout} className="btn-logout">
                 Logout
               </button>
