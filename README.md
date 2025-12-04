@@ -4,10 +4,12 @@ A React application with Supabase authentication built with Vite.
 
 ## Features
 
-- 🔐 User authentication (Login/Signup) with Supabase
-- 🎨 Modern, responsive UI with gradient design
+- 🔐 User authentication (Login/Signup) with Privy & Supabase
+- 🎨 Modern, responsive UI with Tea App-inspired pastel theme
+- 🎨 Centralized TypeScript theme system for consistent styling
+- 💼 Embedded wallet functionality
 - 🚀 Fast development with Vite and HMR
-- ✨ Beautiful login modal with form validation
+- ✨ Beautiful modals and forms with validation
 
 ## Quick Start
 
@@ -63,9 +65,65 @@ src/
 ## Technologies Used
 
 - **React** - UI library
+- **TypeScript** - Type-safe development
 - **Vite** - Build tool and dev server
+- **Privy** - Web3 authentication and embedded wallets
 - **Supabase** - Backend as a Service (Authentication & Database)
-- **@supabase/supabase-js** - Supabase JavaScript client
+- **React Router** - Client-side routing
+
+## Design System & Theme
+
+This project uses a centralized theme system for consistent styling across all components.
+
+### Theme Files
+
+- **`src/theme.ts`** - Main theme configuration (colors, spacing, typography, etc.)
+- **`src/theme.d.ts`** - TypeScript type definitions
+- **`src/hooks/useTheme.ts`** - React hook for accessing theme
+- **`src/index.css`** - CSS variables that mirror theme.ts
+- **`THEME_GUIDE.md`** - Complete theme documentation
+
+### Color Palette (Tea App Inspired)
+
+The app uses a vivid pastel color palette with solid colors (no gradients):
+
+- **Cream** (`#FFF8E1`) - Page backgrounds
+- **Lavender** (`#E0CCFF`) - Cards and primary sections
+- **Mint Green** (`#A0FFB0`) - Primary action buttons
+- **Pink** (`#FFD4D4`) - Secondary buttons
+- **Sky Blue** (`#C5E4FF`) - Info elements
+- **Purple** (`#D4B5FF`) - Links and highlights
+
+### Using the Theme
+
+**In CSS files:**
+```css
+.my-component {
+  background: var(--lavender);
+  color: var(--text-primary);
+  border: var(--border-thin);
+  border-radius: var(--border-radius-md);
+}
+```
+
+**In React/TypeScript components:**
+```typescript
+import { useTheme } from './hooks/useTheme';
+
+function MyComponent() {
+  const theme = useTheme();
+  return (
+    <div style={{
+      backgroundColor: theme.colors.mintGreen,
+      padding: theme.spacing.md
+    }}>
+      Content
+    </div>
+  );
+}
+```
+
+See **`THEME_GUIDE.md`** for complete documentation and best practices.
 
 ## Available Scripts
 

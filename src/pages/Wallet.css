@@ -1,6 +1,6 @@
 .wallet-page {
   min-height: calc(100vh - 80px);
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: var(--cream-bg);
   padding: 2rem;
 }
 
@@ -10,14 +10,15 @@
 }
 
 .wallet-container > h1 {
-  color: white;
+  color: var(--text-primary);
   text-align: center;
   margin-bottom: 0.5rem;
   font-size: 2.5rem;
+  font-weight: 700;
 }
 
 .subtitle {
-  color: rgba(255, 255, 255, 0.9);
+  color: var(--text-secondary);
   text-align: center;
   margin-bottom: 2rem;
   font-size: 1.1rem;
@@ -25,29 +26,31 @@
 
 .loading {
   text-align: center;
-  color: white;
+  color: var(--text-primary);
   font-size: 1.2rem;
   padding: 2rem;
 }
 
 .user-info {
-  background: white;
+  background: var(--lavender);
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  border-radius: 20px;
+  border: 2px solid var(--text-primary);
   margin-bottom: 2rem;
 }
 
 .user-info h2 {
   margin-bottom: 1.5rem;
-  color: #333;
+  color: var(--text-primary);
+  font-weight: 700;
 }
 
 .info-card {
-  background: #f8f9fa;
+  background: white;
   padding: 1.5rem;
-  border-radius: 8px;
+  border-radius: 16px;
   margin-bottom: 1.5rem;
+  border: 2px solid var(--text-primary);
 }
 
 .info-row {
@@ -55,7 +58,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 0.75rem 0;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.1);
 }
 
 .info-row:last-child {
@@ -64,11 +67,11 @@
 
 .info-row .label {
   font-weight: 600;
-  color: #555;
+  color: var(--text-secondary);
 }
 
 .info-row .value {
-  color: #333;
+  color: var(--text-primary);
   font-family: monospace;
   font-size: 0.9rem;
 }
@@ -80,16 +83,16 @@
 }
 
 .wallet-warning {
-  background: #fff3cd;
-  border: 1px solid #ffc107;
-  border-radius: 8px;
+  background: var(--pink-light);
+  border: 2px solid var(--text-primary);
+  border-radius: 16px;
   padding: 1.5rem;
   margin: 1.5rem 0;
   text-align: center;
 }
 
 .wallet-warning p {
-  color: #856404;
+  color: var(--text-primary);
   margin: 0.5rem 0;
 }
 
@@ -104,22 +107,22 @@
 
 .create-wallet-btn {
   padding: 0.75rem 1.5rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: var(--mint-green);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: 16px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
   margin-top: 1rem;
   width: 100%;
 }
 
 .create-wallet-btn:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: var(--mint-light);
 }
 
 .create-wallet-btn:disabled {
@@ -131,18 +134,20 @@
 .logout-btn {
   width: 100%;
   padding: 0.75rem;
-  background-color: #dc3545;
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: var(--pink);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: 16px;
   font-size: 1rem;
   font-weight: 600;
   cursor: pointer;
-  transition: background-color 0.2s;
+  transition: all 0.2s;
 }
 
 .logout-btn:hover {
-  background-color: #c82333;
+  background: #FFC4C4;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
 
 .wallet-actions {
@@ -154,17 +159,18 @@
 .info-box {
   background: white;
   padding: 2rem;
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  border-radius: 20px;
+  border: 2px solid var(--text-primary);
 }
 
 .info-box h3 {
-  color: #333;
+  color: var(--text-primary);
   margin-bottom: 1rem;
+  font-weight: 700;
 }
 
 .info-box p {
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.6;
   margin-bottom: 1.5rem;
 }
@@ -176,11 +182,13 @@
 }
 
 .feature {
-  background: #f0f7ff;
+  background: var(--sky-blue);
   padding: 0.75rem;
-  border-radius: 6px;
-  color: #333;
+  border-radius: 12px;
+  color: var(--text-primary);
   font-size: 0.9rem;
+  border: 2px solid var(--text-primary);
+  font-weight: 500;
 }
 
 @media (max-width: 768px) {

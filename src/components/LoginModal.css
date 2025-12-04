@@ -24,11 +24,12 @@
 .modal-content {
   background: white;
   padding: 2rem;
-  border-radius: 12px;
+  border-radius: 24px;
   width: 90%;
   max-width: 420px;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  border: 3px solid var(--text-primary);
   animation: slideUp 0.3s ease;
+  box-shadow: 0 8px 16px rgba(0, 0, 0, 0.15);
 }
 
 @keyframes slideUp {
@@ -51,9 +52,9 @@
 
 .modal-header h2 {
   margin: 0;
-  color: #333;
+  color: var(--text-primary);
   font-size: 1.75rem;
-  font-weight: 600;
+  font-weight: 700;
 }
 
 .close-btn {
@@ -91,16 +92,19 @@
 .form-group input {
   width: 100%;
   padding: 0.85rem;
-  border: 2px solid #e0e0e0;
-  border-radius: 8px;
+  border: 2px solid var(--text-primary);
+  border-radius: 12px;
   font-size: 1rem;
   box-sizing: border-box;
-  transition: border-color 0.3s;
+  transition: all 0.2s;
+  background: white;
 }
 
 .form-group input:focus {
   outline: none;
-  border-color: #667eea;
+  border-color: var(--text-primary);
+  background: var(--lavender-light);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .form-group input.input-error {
@@ -147,20 +151,20 @@
 .btn-submit {
   width: 100%;
   padding: 0.85rem;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
-  border: none;
-  border-radius: 8px;
+  background: var(--mint-green);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: 16px;
   font-size: 1rem;
-  font-weight: 500;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(102, 126, 234, 0.3);
+  transition: all 0.2s ease;
 }
 
 .btn-submit:hover:not(:disabled) {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+  background: var(--mint-light);
 }
 
 .btn-submit:disabled {
@@ -179,26 +183,25 @@
 .btn-link {
   background: none;
   border: none;
-  color: #667eea;
+  color: var(--purple);
   cursor: pointer;
   font-size: 0.95rem;
   margin-left: 0.5rem;
-  font-weight: 500;
-  text-decoration: none;
+  font-weight: 600;
+  text-decoration: underline;
   transition: color 0.2s;
 }
 
 .btn-link:hover {
-  color: #764ba2;
-  text-decoration: underline;
+  color: var(--lavender);
 }
 
 .info-box {
   margin-top: 1.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #f0f4ff 0%, #f8f4ff 100%);
-  border-radius: 8px;
-  border-left: 3px solid #667eea;
+  background: var(--lavender-light);
+  border-radius: 12px;
+  border: 2px solid var(--text-primary);
 }
 
 .info-box p {
@@ -225,9 +228,9 @@
 .login-description {
   margin-bottom: 1.5rem;
   padding: 1rem;
-  background: linear-gradient(135deg, #f0f4ff 0%, #f8f4ff 100%);
-  border-radius: 8px;
-  border-left: 3px solid #667eea;
+  background: var(--pink-light);
+  border-radius: 12px;
+  border: 2px solid var(--text-primary);
 }
 
 .login-title {
