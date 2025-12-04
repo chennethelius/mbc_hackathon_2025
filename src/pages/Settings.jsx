@@ -12,10 +12,13 @@ function Settings() {
   
   // Profile form state
   const [profileData, setProfileData] = useState({
+    username: '',
+    display_name: '',
     university: '',
     grade: '',
     location: '',
-    bio: ''
+    bio: '',
+    avatar_url: ''
   });
   const [loading, setLoading] = useState(false);
   const [saveMessage, setSaveMessage] = useState('');
@@ -48,10 +51,13 @@ function Settings() {
         if (result.success && result.user?.profiles) {
           const profile = result.user.profiles;
           setProfileData({
+            username: profile.username || '',
+            display_name: profile.display_name || '',
             university: profile.university || '',
             grade: profile.grade || '',
             location: profile.location || '',
-            bio: profile.bio || ''
+            bio: profile.bio || '',
+            avatar_url: profile.avatar_url || ''
           });
         } else {
           console.log('No profile data found yet for user');
@@ -103,10 +109,13 @@ function Settings() {
       // Save profile using userSync service
       const result = await updateUserProfile(privyUser.id, {
         email: privyUser.email?.address,
+        username: profileData.username,
+        display_name: profileData.display_name,
         university: profileData.university,
         grade: profileData.grade,
         location: profileData.location,
-        bio: profileData.bio
+        bio: profileData.bio,
+        avatar_url: profileData.avatar_url
       });
 
       if (!result.success) {
@@ -212,6 +221,42 @@ function Settings() {
                 <h2>Profile Settings</h2>
                 
                 <form className="profile-form" onSubmit={(e) => { e.preventDefault(); handleSaveProfile(); }}>
+                  <div className="form-group">
+                    <label htmlFor="username">Username</label>
+                    <input
+                      type="text"
+                      id="username"
+                      value={profileData.username}
+                      onChange={(e) => handleProfileChange('username', e.target.value)}
+                      placeholder="e.g., johndoe123"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="display_name">Display Name</label>
+                    <input
+                      type="text"
+                      id="display_name"
+                      value={profileData.display_name}
+                      onChange={(e) => handleProfileChange('display_name', e.target.value)}
+                      placeholder="e.g., John Doe"
+                      className="form-input"
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label htmlFor="avatar_url">Avatar URL</label>
+                    <input
+                      type="url"
+                      id="avatar_url"
+                      value={profileData.avatar_url}
+                      onChange={(e) => handleProfileChange('avatar_url', e.target.value)}
+                      placeholder="https://example.com/avatar.jpg"
+                      className="form-input"
+                    />
+                  </div>
+
                   <div className="form-group">
                     <label htmlFor="university">University</label>
                     <input
