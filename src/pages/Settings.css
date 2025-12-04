@@ -412,3 +412,48 @@
   box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
 }
 
+/* Form Layout Enhancements */
+.form-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.form-section-divider {
+  margin: 2.5rem 0 1.5rem 0;
+  padding-bottom: 0.75rem;
+  border-bottom: 2px solid var(--text-primary);
+}
+
+.form-section-divider h3 {
+  margin: 0;
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.field-hint {
+  display: block;
+  margin-top: 0.5rem;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+}
+
+/* Mobile responsive for form rows */
+@media (max-width: 768px) {
+  .form-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .form-section-divider {
+    margin: 2rem 0 1rem 0;
+  }
+
+  .form-section-divider h3 {
+    font-size: 1.1rem;
+  }
+}
+
