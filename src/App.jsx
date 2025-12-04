@@ -1,81 +1,62 @@
 import { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import { usePrivy } from '@privy-io/react-auth';
 import Navbar from './components/Navbar';
 import ProfilePrompt from './components/ProfilePrompt';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
-import { supabase } from './services/supabase';
+import Wallet from './pages/Wallet';
+import { syncPrivyUserToSupabase } from './services/userSync';
 import './App.css';
 
 function App() {
-  const [user, setUser] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { ready, authenticated, user: privyUser, logout: privyLogout } = usePrivy();
   const [showProfilePrompt, setShowProfilePrompt] = useState(false);
+  const [userSynced, setUserSynced] = useState(false);
+  const [syncError, setSyncError] = useState(null);
 
+  // Sync Privy user to Supabase on authentication
   useEffect(() => {
-    // Check current session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setUser(session?.user ?? null);
-      setLoading(false);
-    });
-
-    // Listen for auth changes
-    const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange((event, session) => {
-      const newUser = session?.user ?? null;
-      setUser(newUser);
-      
-      // Show profile prompt on sign in if user hasn't dismissed it before
-      if (event === 'SIGNED_IN' && newUser) {
-        const hasSeenPrompt = localStorage.getItem(`profile_prompt_seen_${newUser.id}`);
-        if (!hasSeenPrompt) {
-          setShowProfilePrompt(true);
-        }
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  const handleLogin = async (email, password, isSignup, firstName, lastName) => {
-    try {
-      if (isSignup) {
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              first_name: firstName,
-              last_name: lastName,
-              full_name: `${firstName} ${lastName}`,
-            },
-          },
-        });
-        if (error) throw error;
+    const syncUser = async () => {
+      if (authenticated && privyUser && !userSynced) {
+        console.log('🔄 Starting Privy → Supabase sync for user:', privyUser.id);
+        setSyncError(null);
         
-        // Check if email is already registered
-        if (data?.user?.identities?.length === 0) {
-          throw new Error('This email is already registered. Please login instead.');
+        const result = await syncPrivyUserToSupabase(privyUser);
+        
+        if (result.success) {
+          console.log('✅ User synced successfully to Supabase');
+          setUserSynced(true);
+          
+          // Show profile prompt for new users
+          const hasSeenPrompt = localStorage.getItem(`profile_prompt_seen_${privyUser.id}`);
+          if (!hasSeenPrompt) {
+            setShowProfilePrompt(true);
+          }
+        } else {
+          console.error('❌ Failed to sync user:', result.error);
+          setSyncError(result.error);
+          // Don't block the app if sync fails
+          setUserSynced(true);
         }
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-        if (error) throw error;
       }
-    } catch (error) {
-      throw new Error(error.message);
+    };
+
+    syncUser();
+  }, [authenticated, privyUser, userSynced]);
+
+  // Reset sync state on logout
+  useEffect(() => {
+    if (!authenticated) {
+      setUserSynced(false);
+      setSyncError(null);
     }
-  };
+  }, [authenticated]);
 
   const handleLogout = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      // Clear user state and navigate to home
-      setUser(null);
+      await privyLogout();
+      // Navigate to home after logout
       window.location.href = '/';
     } catch (error) {
       console.error('Logout error:', error);
@@ -84,12 +65,12 @@ function App() {
 
   const handleDismissPrompt = () => {
     setShowProfilePrompt(false);
-    if (user) {
-      localStorage.setItem(`profile_prompt_seen_${user.id}`, 'true');
+    if (privyUser) {
+      localStorage.setItem(`profile_prompt_seen_${privyUser.id}`, 'true');
     }
   };
 
-  if (loading) {
+  if (!ready) {
     return (
       <div style={{ 
         display: 'flex', 
@@ -108,20 +89,41 @@ function App() {
     <Router>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
         <Navbar 
-          user={user} 
-          onLogin={handleLogin} 
+          user={privyUser} 
+          authenticated={authenticated}
           onLogout={handleLogout}
         />
         
         <Routes>
-          <Route path="/" element={<Home user={user} />} />
+          <Route path="/" element={<Home user={privyUser} authenticated={authenticated} />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/wallet" element={<Wallet />} />
         </Routes>
 
         {showProfilePrompt && (
           <ProfilePrompt
             onDismiss={handleDismissPrompt}
           />
+        )}
+
+        {syncError && (
+          <div style={{
+            position: 'fixed',
+            bottom: '20px',
+            right: '20px',
+            background: '#fff3cd',
+            border: '1px solid #ffc107',
+            borderRadius: '8px',
+            padding: '1rem',
+            maxWidth: '300px',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
+            zIndex: 1000
+          }}>
+            <strong>⚠️ Sync Warning:</strong>
+            <p style={{ margin: '0.5rem 0 0 0', fontSize: '0.9rem' }}>
+              User data sync had issues. App may have limited functionality.
+            </p>
+          </div>
         )}
       </div>
     </Router>

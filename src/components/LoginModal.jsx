@@ -1,25 +1,30 @@
 import { useState } from 'react';
+import { useLoginWithEmail } from '@privy-io/react-auth';
 import './LoginModal.css';
 
-function LoginModal({ onClose, onLogin }) {
-  const [isSignup, setIsSignup] = useState(false);
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
+function LoginModal({ onClose }) {
   const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [code, setCode] = useState('');
+  const [codeSent, setCodeSent] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [successMessage, setSuccessMessage] = useState('');
   const [emailTouched, setEmailTouched] = useState(false);
+  
+  const { sendCode, loginWithCode } = useLoginWithEmail({
+    onError: (error) => {
+      console.error('Privy login error:', error);
+      setError(error.message || 'Authentication failed. Please try again.');
+      setLoading(false);
+    }
+  });
 
   const isValidEduEmail = email.trim() === '' || email.toLowerCase().endsWith('.edu');
   const showEmailError = emailTouched && email.trim() !== '' && !email.toLowerCase().endsWith('.edu');
 
-  const handleSubmit = async (e) => {
+  const handleSendCode = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
-    setSuccessMessage('');
 
     // Validate .edu email
     if (!email.toLowerCase().endsWith('.edu')) {
@@ -29,10 +34,27 @@ function LoginModal({ onClose, onLogin }) {
     }
 
     try {
-      await onLogin(email, password, isSignup, firstName, lastName);
+      await sendCode({ email });
+      setCodeSent(true);
+      setError('');
+    } catch (err) {
+      setError(err.message || 'Failed to send code. Please try again.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleLogin = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError('');
+
+    try {
+      await loginWithCode({ code });
+      // Privy will handle the auth state change
       onClose();
     } catch (err) {
-      setError(err.message || 'An error occurred. Please try again.');
+      setError(err.message || 'Invalid code. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -42,99 +64,86 @@ function LoginModal({ onClose, onLogin }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{isSignup ? 'Create Account' : 'Welcome Back'}</h2>
+          <h2>{codeSent ? 'Enter Verification Code' : 'Login / Sign Up'}</h2>
           <button onClick={onClose} className="close-btn" aria-label="Close">&times;</button>
         </div>
         
-        <form onSubmit={handleSubmit}>
-          {isSignup && (
-            <>
-              <div className="form-group">
-                <label htmlFor="firstName">First Name</label>
-                <input
-                  id="firstName"
-                  type="text"
-                  value={firstName}
-                  onChange={(e) => setFirstName(e.target.value)}
-                  required
-                  placeholder="Enter your first name"
-                  autoComplete="given-name"
-                />
-              </div>
-              
-              <div className="form-group">
-                <label htmlFor="lastName">Last Name</label>
-                <input
-                  id="lastName"
-                  type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
-                  required
-                  placeholder="Enter your last name"
-                  autoComplete="family-name"
-                />
-              </div>
-            </>
-          )}
-          
-          <div className="form-group">
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              onBlur={() => setEmailTouched(true)}
-              required
-              placeholder="Enter your .edu email"
-              autoComplete="email"
-              className={showEmailError ? 'input-error' : ''}
-            />
-            <small className="form-hint">Must be a valid .edu email address</small>
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="password">Password</label>
-            <input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Enter your password"
-              minLength="6"
-              autoComplete={isSignup ? 'new-password' : 'current-password'}
-            />
-            {isSignup && (
-              <small className="form-hint">Password must be at least 6 characters</small>
-            )}
-          </div>
+        {!codeSent ? (
+          <form onSubmit={handleSendCode}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                onBlur={() => setEmailTouched(true)}
+                required
+                placeholder="Enter your .edu email"
+                autoComplete="email"
+                className={showEmailError ? 'input-error' : ''}
+              />
+              <small className="form-hint">Must be a valid .edu email address</small>
+            </div>
 
-          {error && <div className="error-message">{error}</div>}
-          {successMessage && <div className="success-message">{successMessage}</div>}
+            {error && <div className="error-message">{error}</div>}
 
-          <button type="submit" disabled={loading} className="btn-submit">
-            {loading ? 'Loading...' : (isSignup ? 'Sign Up' : 'Login')}
-          </button>
-        </form>
+            <button type="submit" disabled={loading || !email} className="btn-submit">
+              {loading ? 'Sending...' : 'Send Verification Code'}
+            </button>
 
-        <div className="toggle-mode">
-          {isSignup ? 'Already have an account?' : "Don't have an account?"}
-          <button 
-            type="button"
-            onClick={() => {
-              setIsSignup(!isSignup);
-              setFirstName('');
-              setLastName('');
-              setError('');
-              setSuccessMessage('');
-              setEmailTouched(false);
-            }}
-            className="btn-link"
-          >
-            {isSignup ? 'Login' : 'Sign Up'}
-          </button>
-        </div>
+            <div className="info-box">
+              <p>🔐 Secure passwordless login</p>
+              <p>✨ Automatic wallet creation</p>
+            </div>
+          </form>
+        ) : (
+          <form onSubmit={handleLogin}>
+            <div className="form-group">
+              <label htmlFor="email">Email</label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                disabled
+                className="input-disabled"
+              />
+            </div>
+
+            <div className="form-group">
+              <label htmlFor="code">Verification Code</label>
+              <input
+                id="code"
+                type="text"
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+                placeholder="Enter the code from your email"
+                autoComplete="one-time-code"
+                autoFocus
+              />
+              <small className="form-hint">Check your email for the verification code</small>
+            </div>
+
+            {error && <div className="error-message">{error}</div>}
+
+            <button type="submit" disabled={loading || !code} className="btn-submit">
+              {loading ? 'Verifying...' : 'Login'}
+            </button>
+
+            <button 
+              type="button"
+              onClick={() => {
+                setCodeSent(false);
+                setCode('');
+                setError('');
+              }}
+              className="btn-link"
+            >
+              ← Use different email
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );

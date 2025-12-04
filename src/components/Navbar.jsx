@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import LoginModal from './LoginModal';
 import './Navbar.css';
 
-function Navbar({ user, onLogin, onLogout }) {
+function Navbar({ user, authenticated, onLogout }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
   const navigate = useNavigate();
 
@@ -14,7 +14,12 @@ function Navbar({ user, onLogin, onLogout }) {
           <h2>MBC Hackathon 2025</h2>
         </div>
         <div className="navbar-actions">
-          {user && (
+          {authenticated && (
+            <button onClick={() => navigate('/wallet')} className="btn-wallet">
+              💼 Wallet
+            </button>
+          )}
+          {authenticated && (
             <button onClick={() => navigate('/settings')} className="btn-settings" title="Settings">
               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"></path>
@@ -22,9 +27,9 @@ function Navbar({ user, onLogin, onLogout }) {
               </svg>
             </button>
           )}
-          {user ? (
+          {authenticated ? (
             <div className="user-menu">
-              <span className="user-email">Welcome, {user.user_metadata?.full_name || user.email}</span>
+              <span className="user-email">Welcome, {user?.email?.address || 'User'}</span>
               <button onClick={onLogout} className="btn-logout">
                 Logout
               </button>
@@ -43,7 +48,6 @@ function Navbar({ user, onLogin, onLogout }) {
       {showLoginModal && (
         <LoginModal 
           onClose={() => setShowLoginModal(false)}
-          onLogin={onLogin}
         />
       )}
     </>

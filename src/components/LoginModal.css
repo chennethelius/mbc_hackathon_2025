@@ -188,6 +188,34 @@
   text-decoration: underline;
 }
 
+.info-box {
+  margin-top: 1.5rem;
+  padding: 1rem;
+  background: linear-gradient(135deg, #f0f4ff 0%, #f8f4ff 100%);
+  border-radius: 8px;
+  border-left: 3px solid #667eea;
+}
+
+.info-box p {
+  margin: 0.5rem 0;
+  font-size: 0.9rem;
+  color: #555;
+}
+
+.info-box p:first-child {
+  margin-top: 0;
+}
+
+.info-box p:last-child {
+  margin-bottom: 0;
+}
+
+.input-disabled {
+  background-color: #f5f5f5 !important;
+  cursor: not-allowed !important;
+  color: #999 !important;
+}
+
 @media (max-width: 768px) {
   .modal-content {
     padding: 1.5rem;

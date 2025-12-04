@@ -1,25 +1,36 @@
 import './Home.css';
 
-function Home({ user }) {
+function Home({ user, authenticated }) {
+  // Get embedded wallet info - check multiple wallet types
+  const embeddedWallet = user?.linkedAccounts?.find(
+    account => account.type === 'wallet' || account.walletClientType === 'privy'
+  );
+  
+  // Also check for any wallet with an address
+  const anyWallet = user?.linkedAccounts?.find(
+    account => account.type?.includes('wallet') || account.address
+  );
+  
+  const wallet = embeddedWallet || anyWallet;
+
   return (
     <div className="home-page">
       <div className="welcome-section">
         <h1>Welcome to MBC Hackathon 2025</h1>
-        {user ? (
+        {authenticated && user ? (
           <div className="user-info">
-            <p className="success-text">✓ You are logged in as <strong>{user.user_metadata?.full_name || user.email}</strong></p>
+            <p className="success-text">✓ You are logged in as <strong>{user.email?.address || 'User'}</strong></p>
             <div className="user-details">
-              {user.user_metadata?.full_name && (
+              <p><strong>Email:</strong> {user.email?.address || 'N/A'}</p>
+              <p><strong>User ID:</strong> {user.id}</p>
+              <p><strong>Account Created:</strong> {new Date(user.createdAt).toLocaleDateString()}</p>
+              {wallet && (
                 <>
-                  <p><strong>Name:</strong> {user.user_metadata.full_name}</p>
-                  {user.user_metadata?.first_name && user.user_metadata?.last_name && (
-                    <p><strong>First Name:</strong> {user.user_metadata.first_name} | <strong>Last Name:</strong> {user.user_metadata.last_name}</p>
-                  )}
+                  <p><strong>🎉 Embedded Wallet:</strong> Created!</p>
+                  <p><strong>Wallet Address:</strong> <code>{wallet.address}</code></p>
+                  <p className="hint">Your wallet was automatically created when you logged in!</p>
                 </>
               )}
-              <p><strong>Email:</strong> {user.email}</p>
-              <p><strong>User ID:</strong> {user.id}</p>
-              <p><strong>Account Created:</strong> {new Date(user.created_at).toLocaleDateString()}</p>
             </div>
           </div>
         ) : (

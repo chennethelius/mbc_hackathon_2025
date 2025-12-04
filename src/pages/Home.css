@@ -58,6 +58,22 @@
   margin-right: 0.5rem;
 }
 
+.user-details code {
+  background-color: #e8e8e8;
+  padding: 0.2rem 0.5rem;
+  border-radius: 4px;
+  font-family: 'Courier New', monospace;
+  font-size: 0.9rem;
+  word-break: break-all;
+}
+
+.user-details .hint {
+  color: #2e7d32;
+  font-style: italic;
+  font-size: 0.9rem;
+  margin-top: 0.5rem;
+}
+
 .login-prompt {
   padding: 2rem;
 }
