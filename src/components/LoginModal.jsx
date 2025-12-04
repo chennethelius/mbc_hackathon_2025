@@ -64,12 +64,17 @@ function LoginModal({ onClose }) {
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="modal-header">
-          <h2>{codeSent ? 'Enter Verification Code' : 'Login / Sign Up'}</h2>
+          <h2>{codeSent ? 'Enter Verification Code' : 'Welcome!'}</h2>
           <button onClick={onClose} className="close-btn" aria-label="Close">&times;</button>
         </div>
         
         {!codeSent ? (
           <form onSubmit={handleSendCode}>
+            <div className="login-description">
+              <p className="login-title">🔐 Passwordless Email Login</p>
+              <p className="login-subtitle">We'll send you a one-time code to log in or create your account automatically—no password needed!</p>
+            </div>
+
             <div className="form-group">
               <label htmlFor="email">Email</label>
               <input
@@ -83,7 +88,9 @@ function LoginModal({ onClose }) {
                 autoComplete="email"
                 className={showEmailError ? 'input-error' : ''}
               />
-              <small className="form-hint">Must be a valid .edu email address</small>
+              <small className={showEmailError ? 'form-hint error' : 'form-hint'}>
+                {showEmailError ? '⚠️ Must be a valid .edu email address' : 'Must be a valid .edu email address'}
+              </small>
             </div>
 
             {error && <div className="error-message">{error}</div>}
@@ -91,11 +98,6 @@ function LoginModal({ onClose }) {
             <button type="submit" disabled={loading || !email} className="btn-submit">
               {loading ? 'Sending...' : 'Send Verification Code'}
             </button>
-
-            <div className="info-box">
-              <p>🔐 Secure passwordless login</p>
-              <p>✨ Automatic wallet creation</p>
-            </div>
           </form>
         ) : (
           <form onSubmit={handleLogin}>
