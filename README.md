@@ -1,16 +1,75 @@
-# React + Vite
+# MBC Hackathon 2025
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A React application with Supabase authentication built with Vite.
 
-Currently, two official plugins are available:
+## Features
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- 🔐 User authentication (Login/Signup) with Supabase
+- 🎨 Modern, responsive UI with gradient design
+- 🚀 Fast development with Vite and HMR
+- ✨ Beautiful login modal with form validation
 
-## React Compiler
+## Quick Start
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+### 1. Install Dependencies
 
-## Expanding the ESLint configuration
+```bash
+npm install
+```
 
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+### 2. Set Up Supabase
+
+1. Go to your [Supabase Dashboard](https://supabase.com/dashboard)
+2. Navigate to **Settings** → **API**
+3. Copy your **Project URL** and **anon/public key**
+
+### 3. Configure Environment Variables
+
+Create a `.env` file in the root directory:
+
+```bash
+VITE_SUPABASE_URL=your_supabase_project_url_here
+VITE_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+```
+
+### 4. Enable Email Authentication in Supabase
+
+1. In Supabase Dashboard, go to **Authentication** → **Providers**
+2. Make sure **Email** is enabled
+3. (Optional) For development, you can disable email confirmation in **Authentication** → **Settings**
+
+### 5. Run the Development Server
+
+```bash
+npm run dev
+```
+
+## Project Structure
+
+```
+src/
+├── components/
+│   ├── Navbar.jsx          # Navigation bar with login button
+│   ├── Navbar.css
+│   ├── LoginModal.jsx      # Login/Signup modal
+│   └── LoginModal.css
+├── services/
+│   └── supabase.js         # Supabase client configuration
+├── App.jsx                 # Main app component with auth logic
+├── App.css
+└── main.jsx
+```
+
+## Technologies Used
+
+- **React** - UI library
+- **Vite** - Build tool and dev server
+- **Supabase** - Backend as a Service (Authentication & Database)
+- **@supabase/supabase-js** - Supabase JavaScript client
+
+## Available Scripts
+
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run preview` - Preview production build
+- `npm run lint` - Run ESLint
