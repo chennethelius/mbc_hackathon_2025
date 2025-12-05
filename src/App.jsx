@@ -10,6 +10,7 @@ import Wallet from './pages/Wallet';
 import Friends from './pages/Friends';
 import Profile from './pages/Profile';
 import Markets from './pages/Markets';
+import Contracts from './pages/Contracts';
 import { syncPrivyUserToSupabase } from './services/userSync';
 import './App.css';
 
@@ -102,6 +103,7 @@ function App() {
         <Routes>
           <Route path="/" element={<Home user={privyUser} authenticated={authenticated} />} />
           <Route path="/markets" element={<Markets />} />
+          <Route path="/contracts" element={<Contracts />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/friends" element={<Friends />} />

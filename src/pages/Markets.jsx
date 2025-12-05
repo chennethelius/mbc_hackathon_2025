@@ -102,11 +102,25 @@ export default function Markets() {
   const [loading, setLoading] = useState(true);
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [resolvingMarket, setResolvingMarket] = useState(null);
+  const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
 
   useEffect(() => {
     if (authenticated && publicClient) {
       loadMarkets();
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [authenticated, publicClient]);
+
+  // Auto-refresh markets every 10 seconds to catch new creations
+  useEffect(() => {
+    if (!authenticated || !publicClient) return;
+    
+    const interval = setInterval(() => {
+      console.log('Auto-refreshing markets...');
+      loadMarkets();
+    }, 10000); // Refresh every 10 seconds
+    
+    return () => clearInterval(interval);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [authenticated, publicClient]);
 
@@ -147,6 +161,8 @@ export default function Markets() {
         functionName: 'getMarketCount'
       });
 
+      console.log(`Found ${count} total markets`);
+
       // Fetch each market's details
       const marketPromises = [];
       for (let i = 0; i < Number(count); i++) {
@@ -155,6 +171,9 @@ export default function Markets() {
 
       const marketsData = await Promise.all(marketPromises);
       setMarkets(marketsData);
+      setLastUpdateTime(Date.now());
+      
+      console.log('Markets loaded:', marketsData);
     } catch (error) {
       console.error('Error loading markets:', error);
     } finally {
@@ -218,7 +237,12 @@ export default function Markets() {
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="max-w-4xl mx-auto px-4">
         <div className="flex justify-between items-center mb-8">
-          <h1 className="text-3xl font-bold">Dating Prediction Markets</h1>
+          <div>
+            <h1 className="text-3xl font-bold">Dating Prediction Markets</h1>
+            <p className="text-sm text-gray-500 mt-1">
+              Last updated: {new Date(lastUpdateTime).toLocaleTimeString()} • Auto-refreshes every 10s
+            </p>
+          </div>
           <button 
             onClick={() => setShowCreateModal(true)}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"

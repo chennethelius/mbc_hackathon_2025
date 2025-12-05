@@ -33,7 +33,7 @@ function Navbar({ user, authenticated, onLogout }) {
   const tabs = [
     { id: 'markets', label: 'Markets', icon: '📊', path: '/markets' },
     { id: 'friends', label: 'Friends', icon: '👥', path: '/friends' },
-    { id: 'profile', label: 'Profile', icon: '👤', path: `/profile/${user?.id || ''}` },
+    { id: 'contracts', label: 'Contracts', icon: '📜', path: '/contracts' },
     { id: 'wallet', label: 'Wallet', icon: '💰', path: '/wallet' },
     { id: 'settings', label: 'Settings', icon: '⚙️', path: '/settings' }
   ];
@@ -42,8 +42,8 @@ function Navbar({ user, authenticated, onLogout }) {
     if (path === '/markets') {
       return location.pathname === '/' || location.pathname === '/markets';
     }
-    if (path.startsWith('/profile/')) {
-      return location.pathname.startsWith('/profile/');
+    if (path === '/contracts') {
+      return location.pathname === '/contracts';
     }
     return location.pathname === path;
   };
