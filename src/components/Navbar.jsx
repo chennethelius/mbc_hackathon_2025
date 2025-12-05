@@ -26,6 +26,7 @@ function Navbar({ user, authenticated, onLogout }) {
       // Refresh count every 30 seconds
       const interval = setInterval(loadPendingRequestsCount, 30000);
       return () => clearInterval(interval);
+    }
   }, [authenticated, user?.id, loadPendingRequestsCount]);
 
   return (
