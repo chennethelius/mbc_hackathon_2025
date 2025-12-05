@@ -6,6 +6,8 @@ import ProfilePrompt from './components/ProfilePrompt';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
+import Friends from './pages/Friends';
+import Profile from './pages/Profile';
 import { syncPrivyUserToSupabase } from './services/userSync';
 import './App.css';
 
@@ -98,6 +100,8 @@ function App() {
           <Route path="/" element={<Home user={privyUser} authenticated={authenticated} />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<Wallet />} />
+          <Route path="/friends" element={<Friends />} />
+          <Route path="/profile/:userId" element={<Profile />} />
         </Routes>
 
         {showProfilePrompt && (

@@ -1,11 +1,33 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { getPendingRequestsCount } from '../services/friendsService';
 import LoginModal from './LoginModal';
 import './Navbar.css';
 
 function Navbar({ user, authenticated, onLogout }) {
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [pendingRequestsCount, setPendingRequestsCount] = useState(0);
   const navigate = useNavigate();
+
+  // Load pending friend requests count
+  useEffect(() => {
+    if (authenticated && user?.id) {
+      loadPendingRequestsCount();
+      
+      // Refresh count every 30 seconds
+      const interval = setInterval(loadPendingRequestsCount, 30000);
+      return () => clearInterval(interval);
+    }
+  }, [authenticated, user?.id]);
+
+  const loadPendingRequestsCount = async () => {
+    if (user?.id) {
+      const result = await getPendingRequestsCount(user.id);
+      if (result.success) {
+        setPendingRequestsCount(result.count || 0);
+      }
+    }
+  };
 
   return (
     <>
@@ -16,6 +38,12 @@ function Navbar({ user, authenticated, onLogout }) {
         <div className="navbar-actions">
           {authenticated && (
             <>
+              <button onClick={() => navigate('/friends')} className="btn-friends-nav">
+                👥 Friends
+                {pendingRequestsCount > 0 && (
+                  <span className="notification-badge">{pendingRequestsCount}</span>
+                )}
+              </button>
               <button onClick={() => navigate('/wallet')} className="btn-wallet">
                 💼 Wallet
               </button>

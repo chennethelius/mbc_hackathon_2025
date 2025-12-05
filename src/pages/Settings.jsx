@@ -703,7 +703,7 @@ function Settings() {
                         <span className="info-value" style={{color: '#10b981'}}>✓ Synced to Database</span>
                       </div>
                       <div className="wallet-actions">
-                        <button onClick={() => navigate('/wallet')} className="btn-wallet">
+                        <button onClick={() => navigate('/wallet')} className="btn-wallet-link">
                           View Wallet Details →
                         </button>
                       </div>
@@ -718,7 +718,7 @@ function Settings() {
                       </p>
                       <button 
                         onClick={handleCreateWallet} 
-                        className="btn-wallet"
+                        className="btn-wallet-link"
                         disabled={creatingWallet}
                       >
                         {creatingWallet ? '🔄 Creating Wallet...' : '✨ Create Wallet'}

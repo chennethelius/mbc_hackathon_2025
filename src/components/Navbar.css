@@ -22,12 +22,58 @@
   gap: 0.75rem;
 }
 
+.btn-friends-nav {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--text-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--lavender);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.btn-friends-nav:hover {
+  background: var(--purple);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.notification-badge {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #ef4444;
+  color: white;
+  border-radius: 50%;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  font-weight: 700;
+  border: 2px solid white;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
 .btn-wallet {
   padding: 0.6rem 1.2rem;
   border: 2px solid var(--text-primary);
   border-radius: 12px;
   cursor: pointer;
-  background: var(--mint-green);
+  background: var(--mint-light);
   color: var(--text-primary);
   font-weight: 600;
   font-size: 0.95rem;
@@ -35,7 +81,7 @@
 }
 
 .btn-wallet:hover {
-  background: var(--mint-light);
+  background: var(--mint-green);
   transform: translateY(-2px);
   box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
 }
@@ -116,13 +162,29 @@
     font-size: 1.2rem;
   }
 
+  .navbar-actions {
+    gap: 0.5rem;
+  }
+
   .user-email {
     display: none;
+  }
+
+  .btn-friends-nav,
+  .btn-wallet {
+    padding: 0.5rem 0.8rem;
+    font-size: 0.85rem;
   }
 
   .btn-login, .btn-logout {
     padding: 0.5rem 1rem;
     font-size: 0.9rem;
+  }
+  
+  .notification-badge {
+    width: 16px;
+    height: 16px;
+    font-size: 0.65rem;
   }
 }
 

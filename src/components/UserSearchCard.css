@@ -1,0 +1,168 @@
+.user-search-card {
+  background: white;
+  border: none;
+  border-radius: 16px;
+  padding: 1.5rem;
+  display: flex;
+  gap: 1.5rem;
+  align-items: center;
+  transition: all 0.2s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.user-search-card:hover {
+  box-shadow: 0 8px 24px rgba(212, 181, 255, 0.4);
+  transform: translateY(-2px);
+}
+
+.user-search-avatar {
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid #e5e7eb;
+}
+
+.user-search-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.user-search-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--purple);
+  color: var(--text-primary);
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.user-search-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.user-search-name {
+  color: #1f2937;
+  font-size: 1.1rem;
+  margin: 0 0 0.25rem 0;
+  font-weight: 600;
+}
+
+.user-search-username {
+  color: #667eea;
+  font-size: 0.9rem;
+  margin: 0 0 0.5rem 0;
+}
+
+.user-search-detail {
+  color: #6b7280;
+  font-size: 0.85rem;
+  margin: 0.25rem 0;
+}
+
+.user-search-bio {
+  color: #6b7280;
+  font-size: 0.9rem;
+  margin: 0.5rem 0 0 0;
+  line-height: 1.4;
+}
+
+.user-search-actions {
+  flex-shrink: 0;
+}
+
+.btn-add-friend {
+  padding: 0.75rem 1.5rem;
+  background: var(--purple);
+  color: var(--text-primary);
+  border: 2px solid var(--text-primary);
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-add-friend:hover {
+  transform: translateY(-2px);
+  background: var(--lavender);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.btn-pending {
+  padding: 0.75rem 1.5rem;
+  background: #fbbf24;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(251, 191, 36, 0.3);
+}
+
+.btn-pending:hover {
+  background: #f59e0b;
+  transform: translateY(-2px);
+}
+
+.btn-friends {
+  padding: 0.75rem 1.5rem;
+  background: #10b981;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  opacity: 0.7;
+  white-space: nowrap;
+}
+
+.btn-loading {
+  padding: 0.75rem 1.5rem;
+  background: #e5e7eb;
+  color: #6b7280;
+  border: none;
+  border-radius: 10px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: not-allowed;
+  white-space: nowrap;
+}
+
+@media (max-width: 768px) {
+  .user-search-card {
+    flex-direction: column;
+    text-align: center;
+    padding: 1rem;
+  }
+
+  .user-search-avatar {
+    width: 60px;
+    height: 60px;
+  }
+
+  .user-search-actions {
+    width: 100%;
+  }
+
+  .btn-add-friend,
+  .btn-pending,
+  .btn-friends,
+  .btn-loading {
+    width: 100%;
+    padding: 0.6rem 1rem;
+  }
+}
+
