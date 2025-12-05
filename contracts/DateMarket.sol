@@ -24,6 +24,10 @@ contract DateMarket is ReentrancyGuard {
     bool public resolved;
     bool public outcome; // true = YES, false = NO
     
+    // Access control for betting
+    mapping(address => bool) public canBet;
+    uint256 public eligibleBettorCount;
+    
     // Two-party resolution system
     bool public friend1Resolved;
     bool public friend2Resolved;
@@ -43,6 +47,7 @@ contract DateMarket is ReentrancyGuard {
     event SponsorshipAdded(address indexed sponsor, uint256 amount);
     event MarketResolved(bool outcome, uint256 timestamp);
     event WinningsClaimed(address indexed user, uint256 amount);
+    event BettorAdded(address indexed bettor);
 
     constructor(
         address _usdcToken,
@@ -65,11 +70,44 @@ contract DateMarket is ReentrancyGuard {
     }
 
     /**
+     * @notice Add eligible bettor (only creator/matchmaker can call)
+     * @param bettor Address allowed to bet on this market
+     */
+    function addEligibleBettor(address bettor) external {
+        require(msg.sender == creator, "Only creator can add bettors");
+        require(bettor != address(0), "Invalid bettor address");
+        require(!canBet[bettor], "Already eligible");
+        
+        canBet[bettor] = true;
+        eligibleBettorCount++;
+        
+        emit BettorAdded(bettor);
+    }
+
+    /**
+     * @notice Add multiple eligible bettors at once
+     * @param bettors Array of addresses allowed to bet
+     */
+    function addEligibleBettors(address[] calldata bettors) external {
+        require(msg.sender == creator, "Only creator can add bettors");
+        
+        for (uint256 i = 0; i < bettors.length; i++) {
+            address bettor = bettors[i];
+            if (bettor != address(0) && !canBet[bettor]) {
+                canBet[bettor] = true;
+                eligibleBettorCount++;
+                emit BettorAdded(bettor);
+            }
+        }
+    }
+
+    /**
      * @notice Place a bet on the market
      * @param position true for YES, false for NO
      * @param amount Amount of USDC to bet (in USDC decimals, typically 6)
      */
     function placeBet(bool position, uint256 amount) external nonReentrant {
+        require(canBet[msg.sender], "Not eligible to bet on this market");
         require(!resolved, "Market already resolved");
         require(block.timestamp < resolutionTime, "Market closed");
         require(amount > 0, "Amount must be positive");
@@ -169,6 +207,7 @@ contract DateMarket is ReentrancyGuard {
 
     /**
      * @notice Claim winnings after market is resolved
+     * Handles edge case: If no one bet on winning side, everyone gets refunded
      */
     function claimWinnings() external nonReentrant {
         require(resolved, "Market not resolved");
@@ -176,23 +215,33 @@ contract DateMarket is ReentrancyGuard {
         Bet storage bet = bets[msg.sender];
         require(bet.amount > 0, "No bet placed");
         require(!bet.claimed, "Already claimed");
-        require(bet.position == outcome, "Bet lost");
 
-        // Calculate payout using pari-mutuel formula
+        uint256 payout;
         uint256 winningPool = outcome ? totalYesPool : totalNoPool;
         uint256 losingPool = outcome ? totalNoPool : totalYesPool;
         uint256 totalPool = winningPool + losingPool + totalSponsorships;
         
-        require(winningPool > 0, "No winning pool");
-        
-        // Payout = (user bet / winning pool) * total pool
-        uint256 payout = (bet.amount * totalPool) / winningPool;
+        // Edge case: No one bet on winning side, refund everyone
+        if (winningPool == 0) {
+            payout = bet.amount;
+        } 
+        // Normal case: User bet on winning side
+        else if (bet.position == outcome) {
+            // Calculate payout using pari-mutuel formula
+            // Payout = (user bet / winning pool) * total pool
+            payout = (bet.amount * totalPool) / winningPool;
+        }
+        // User bet on losing side
+        else {
+            payout = 0; // No payout for losers
+        }
         
         bet.claimed = true;
 
-        require(usdcToken.transfer(msg.sender, payout), "USDC transfer failed");
-
-        emit WinningsClaimed(msg.sender, payout);
+        if (payout > 0) {
+            require(usdcToken.transfer(msg.sender, payout), "USDC transfer failed");
+            emit WinningsClaimed(msg.sender, payout);
+        }
     }
 
     /**

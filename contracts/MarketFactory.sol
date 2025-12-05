@@ -29,6 +29,33 @@ contract MarketFactory {
     }
 
     /**
+     * @notice Create a new dating prediction market with eligible bettors
+     * @param friend1 Address of first friend
+     * @param friend2 Address of second friend
+     * @param title Market title/question
+     * @param resolutionTime Time when market can be resolved
+     * @param eligibleBettors Array of addresses allowed to bet
+     */
+    function createMarketWithBettors(
+        address friend1,
+        address friend2,
+        string memory title,
+        uint256 resolutionTime,
+        address[] memory eligibleBettors
+    ) external returns (address) {
+        // Create market first
+        address marketAddress = createMarket(friend1, friend2, title, resolutionTime);
+        
+        // Add eligible bettors
+        DateMarket market = DateMarket(marketAddress);
+        if (eligibleBettors.length > 0) {
+            market.addEligibleBettors(eligibleBettors);
+        }
+        
+        return marketAddress;
+    }
+
+    /**
      * @notice Create a new dating prediction market
      * @param friend1 Address of first friend
      * @param friend2 Address of second friend

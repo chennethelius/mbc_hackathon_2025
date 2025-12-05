@@ -6,6 +6,8 @@ import betsRouter from './routes/bets.js';
 import friendsRouter from './routes/friends.js';
 import paymentsRouter from './routes/payments.js';
 import usersRouter from './routes/users.js';
+import vouchersRouter from './routes/vouchers.js';
+import matchProposalsRouter from './routes/matchProposals.js';
 
 dotenv.config();
 
@@ -27,6 +29,8 @@ app.use('/api/bets', betsRouter);
 app.use('/api/friends', friendsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/users', usersRouter);
+app.use('/api/vouchers', vouchersRouter);
+app.use('/api/match-proposals', matchProposalsRouter);
 
 // Error handling middleware
 app.use((err, req, res, next) => {
