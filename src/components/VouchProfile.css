@@ -1,0 +1,550 @@
+.vouch-profile {
+  padding: 20px;
+}
+
+.vouch-profile-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 400px;
+}
+
+/* Hero Section */
+.vouch-profile-hero {
+  background: var(--lavender);
+  border-radius: 16px;
+  padding: 40px;
+  color: var(--text-primary);
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.vouch-score-display {
+  margin-bottom: 30px;
+}
+
+.vouch-score-circle {
+  width: 150px;
+  height: 150px;
+  border-radius: 50%;
+  backdrop-filter: blur(10px);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 20px;
+  border: 4px solid var(--text-primary);
+}
+
+.vouch-score-value {
+  font-size: 3rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.vouch-score-max {
+  font-size: 1.2rem;
+  opacity: 0.8;
+}
+
+.vouch-score-display h2 {
+  margin: 0 0 10px 0;
+  font-size: 1.8rem;
+}
+
+.vouch-score-description {
+  margin: 0;
+  font-size: 1rem;
+  opacity: 0.9;
+}
+
+.vouch-profile-stats {
+  display: flex;
+  justify-content: center;
+  gap: 40px;
+  flex-wrap: wrap;
+}
+
+.vouch-profile-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+}
+
+.vouch-profile-stat .stat-icon {
+  font-size: 2rem;
+}
+
+.vouch-profile-stat .stat-value {
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.vouch-profile-stat .stat-label {
+  font-size: 0.9rem;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+/* Profile Section */
+.vouch-profile-section {
+  background: white;
+  border-radius: 12px;
+  padding: 25px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+}
+
+.vouch-profile-section h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.vouch-empty-state {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+}
+
+.vouch-empty-state .empty-state-icon {
+  font-size: 3rem;
+  margin-bottom: 15px;
+}
+
+/* Vouches Received */
+.vouches-received-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.vouch-received-card {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.vouch-received-card:hover {
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.08);
+  transform: translateY(-1px);
+}
+
+.vouch-received-avatar {
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.vouch-received-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vouch-received-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.3rem;
+  font-weight: bold;
+}
+
+.vouch-received-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vouch-received-info h4 {
+  margin: 0 0 3px 0;
+  color: #333;
+  font-size: 1rem;
+}
+
+.vouch-received-username {
+  margin: 0;
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.vouch-received-points {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 5px;
+}
+
+.vouch-stars {
+  display: flex;
+  gap: 2px;
+}
+
+.star-filled {
+  color: #FFD700;
+  font-size: 1.2rem;
+}
+
+.star-empty {
+  color: #ddd;
+  font-size: 1.2rem;
+}
+
+.vouch-points-value {
+  font-size: 0.9rem;
+  font-weight: bold;
+  color: #667eea;
+}
+
+/* Vouch History */
+.vouch-history-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+  gap: 15px;
+}
+
+.history-tabs {
+  display: flex;
+  gap: 8px;
+  background: #f8f9fa;
+  padding: 4px;
+  border-radius: 8px;
+}
+
+.history-tab {
+  padding: 8px 16px;
+  background: transparent;
+  border: none;
+  border-radius: 6px;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-weight: 500;
+}
+
+.history-tab:hover {
+  background: white;
+}
+
+.history-tab.active {
+  background: white;
+  color: #667eea;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.vouch-history-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.vouch-history-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  transition: all 0.2s;
+}
+
+.vouch-history-item:hover {
+  background: #f8f9fa;
+}
+
+.history-icon {
+  width: 45px;
+  height: 45px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.history-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.history-main {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+  flex-wrap: wrap;
+}
+
+.history-type {
+  font-weight: 600;
+  color: #333;
+  font-size: 0.95rem;
+}
+
+.history-related {
+  color: #667eea;
+  font-size: 0.9rem;
+}
+
+.history-details {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  font-size: 0.85rem;
+  color: #666;
+}
+
+.history-change {
+  font-size: 1.1rem;
+  font-weight: bold;
+  padding: 8px 12px;
+  border-radius: 6px;
+  min-width: 60px;
+  text-align: center;
+}
+
+.history-change.positive {
+  color: #28a745;
+  background: #d4edda;
+}
+
+.history-change.negative {
+  color: #dc3545;
+  background: #f8d7da;
+}
+
+/* Info Section */
+.vouch-profile-info {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 25px;
+}
+
+.vouch-profile-info h3 {
+  margin: 0 0 20px 0;
+  color: #333;
+  text-align: center;
+}
+
+.info-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 20px;
+}
+
+.info-card {
+  background: white;
+  border-radius: 10px;
+  padding: 20px;
+  text-align: center;
+}
+
+.info-card-icon {
+  font-size: 2.5rem;
+  margin-bottom: 15px;
+}
+
+.info-card h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.info-card p {
+  margin: 0;
+  color: #666;
+  font-size: 0.9rem;
+  line-height: 1.5;
+}
+
+/* Info Button and Modal */
+.vouch-score-title-with-info {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+
+.vouch-score-title-with-info h2 {
+  margin: 0;
+}
+
+.vouch-info-button {
+  border: 2px solid #333;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #333;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-weight: bold;
+  top:2px;
+  right:5px;
+}
+
+.vouch-info-button:hover {
+  background: #333;
+  color: white;
+}
+
+.vouch-info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.vouch-info-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 600px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vouch-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.vouch-info-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.4rem;
+}
+
+.vouch-info-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.vouch-info-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.vouch-info-content {
+  padding: 25px;
+  max-height: 70vh;
+  overflow-y: auto;
+}
+
+.vouch-info-section {
+  display: flex;
+  gap: 15px;
+  margin-bottom: 25px;
+  align-items: flex-start;
+}
+
+.vouch-info-section:last-child {
+  margin-bottom: 0;
+}
+
+.vouch-info-icon {
+  font-size: 2rem;
+  flex-shrink: 0;
+}
+
+.vouch-info-text h4 {
+  margin: 0 0 10px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.vouch-info-text p {
+  margin: 0;
+  color: #666;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vouch-profile-hero {
+    padding: 30px 20px;
+  }
+
+  .vouch-profile-stats {
+    gap: 20px;
+  }
+
+  .vouch-history-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .history-tabs {
+    justify-content: center;
+  }
+
+  .vouch-history-item {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .history-change {
+    align-self: flex-end;
+  }
+
+  .info-cards {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -1,0 +1,415 @@
+.vouch-for-others {
+  padding: 0;
+}
+
+.vouch-for-others-loading {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 300px;
+}
+
+/* Stats Header */
+.vouch-stats-header {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 20px;
+  margin-bottom: 30px;
+}
+
+.vouch-stat-card {
+  background: #FFF8ED;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.08);
+  border: 4px solid #B088F9;
+  color: #2a2a2a;
+  opacity: 1;
+}
+
+.vouch-stat-icon {
+  font-size: 2.5rem;
+}
+
+.vouch-stat-info {
+  flex: 1;
+}
+
+.vouch-stat-info h3 {
+  margin: 0 0 8px 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2a2a2a;
+}
+
+.vouch-stat-value {
+  margin: 0;
+  font-size: 2rem;
+  font-weight: bold;
+  line-height: 1;
+}
+
+.vouch-stat-detail {
+  margin: 5px 0 0 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #555;
+}
+
+/* Message */
+.vouch-message {
+  padding: 12px 20px;
+  border-radius: 8px;
+  margin-bottom: 20px;
+  font-weight: 500;
+}
+
+.vouch-message.success {
+  background-color: #d4edda;
+  color: #155724;
+  border: 1px solid #c3e6cb;
+}
+
+.vouch-message.error {
+  background-color: #f8d7da;
+  color: #721c24;
+  border: 1px solid #f5c6cb;
+}
+
+.vouch-message.info {
+  background-color: #d1ecf1;
+  color: #0c5460;
+  border: 1px solid #bee5eb;
+}
+
+/* Info Modal */
+.vouch-info-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 20px;
+}
+
+.vouch-info-modal {
+  background: white;
+  border-radius: 16px;
+  max-width: 500px;
+  width: 100%;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+  animation: modalSlideIn 0.3s ease-out;
+}
+
+@keyframes modalSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.vouch-info-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 25px;
+  border-bottom: 2px solid #e0e0e0;
+}
+
+.vouch-info-header h3 {
+  margin: 0;
+  color: #333;
+  font-size: 1.3rem;
+}
+
+.vouch-info-close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  color: #666;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.vouch-info-close:hover {
+  background: #f0f0f0;
+  color: #333;
+}
+
+.vouch-info-content {
+  padding: 25px;
+}
+
+.vouch-info-content ul {
+  margin: 0;
+  padding-left: 20px;
+}
+
+.vouch-info-content li {
+  margin-bottom: 12px;
+  color: #555;
+  line-height: 1.6;
+  font-size: 0.95rem;
+}
+
+/* Header */
+.vouch-title-with-info {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+}
+
+.vouch-title-with-info h2 {
+  margin: 0;
+}
+
+/* Friends Section */
+.vouch-friends-section {
+  margin-top: 20px;
+}
+
+.vouch-info-button {
+  background: none;
+  border: 2px solid #333;
+  border-radius: 50%;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-family: inherit;
+  color: #333;
+  padding: 0;
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.2s;
+  font-weight: bold;
+  position: relative;
+  bottom: 4px;
+}
+
+.vouch-info-button:hover {
+  background: #333;
+  color: white;
+}
+
+.vouch-empty-state {
+  text-align: center;
+  padding: 60px 20px;
+  color: #666;
+}
+
+.vouch-empty-state .empty-state-icon {
+  font-size: 4rem;
+  margin-bottom: 20px;
+}
+
+.vouch-empty-state h3 {
+  margin: 0 0 10px 0;
+  color: #333;
+}
+
+/* Friends List */
+.vouch-friends-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+.vouch-friend-card {
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 20px;
+  transition: all 0.2s;
+  position: relative;
+}
+
+.vouch-friend-card:hover {
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  transform: translateY(-2px);
+}
+
+.vouch-friend-avatar {
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.vouch-friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.vouch-friend-avatar-placeholder {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-size: 1.5rem;
+  font-weight: bold;
+}
+
+.vouch-friend-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.vouch-friend-info h3 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 1.1rem;
+}
+
+.vouch-friend-username {
+  margin: 0 0 5px 0;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.vouch-friend-score {
+  margin: 0;
+  color: #667eea;
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+/* Vouch Controls */
+.vouch-friend-controls {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.vouch-star-rating {
+  display: flex;
+  gap: 5px;
+}
+
+.vouch-star {
+  background: none;
+  border: none;
+  font-size: 1.8rem;
+  color: #ddd;
+  cursor: pointer;
+  padding: 0;
+  transition: all 0.2s;
+  line-height: 1;
+}
+
+.vouch-star:hover {
+  transform: scale(1.2);
+}
+
+.vouch-star.active {
+  color: #FFD700;
+}
+
+.vouch-star:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vouch-points-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 60px;
+}
+
+.vouch-points-value {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #667eea;
+  line-height: 1;
+}
+
+.vouch-points-label {
+  font-size: 0.75rem;
+  color: #666;
+  text-transform: uppercase;
+}
+
+.btn-clear-vouch {
+  padding: 8px 16px;
+  background-color: #f8f9fa;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  color: #666;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.btn-clear-vouch:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+.btn-clear-vouch:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.vouch-saving-indicator {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: #667eea;
+  color: white;
+  padding: 4px 12px;
+  border-radius: 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+  .vouch-stats-header {
+    grid-template-columns: 1fr;
+  }
+
+  .vouch-friend-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .vouch-friend-controls {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .vouch-star-rating {
+    justify-content: center;
+  }
+}
+
