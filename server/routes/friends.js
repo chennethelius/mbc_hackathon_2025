@@ -12,8 +12,8 @@ router.get('/:userId', async (req, res) => {
       .from('friendships')
       .select(`
         *,
-        user1:profiles!friendships_user_id_1_fkey(id, email, full_name, avatar_url),
-        user2:profiles!friendships_user_id_2_fkey(id, email, full_name, avatar_url)
+        user1:profiles!friendships_user_id_1_fkey(id, email, full_name, avatar_url, wallet_address),
+        user2:profiles!friendships_user_id_2_fkey(id, email, full_name, avatar_url, wallet_address)
       `)
       .or(`user_id_1.eq.${userId},user_id_2.eq.${userId}`)
       .eq('status', 'accepted');
@@ -24,8 +24,12 @@ router.get('/:userId', async (req, res) => {
     const friends = data.map(friendship => {
       const friend = friendship.user_id_1 === userId ? friendship.user2 : friendship.user1;
       return {
-        ...friendship,
-        friend
+        id: friend.id,
+        email: friend.email,
+        full_name: friend.full_name,
+        display_name: friend.full_name || friend.email,
+        avatar_url: friend.avatar_url,
+        wallet_address: friend.wallet_address
       };
     });
 

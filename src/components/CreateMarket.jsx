@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWalletClient } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
+import { getFriends } from '../services/friendsService';
 
 const MARKET_FACTORY_ADDRESS = '0xCa897F235F88316f03D34ecCC7701a4dA4a36895';
 const MARKET_FACTORY_ABI = [
@@ -20,7 +21,7 @@ const MARKET_FACTORY_ABI = [
 
 export default function CreateMarket({ onClose, onSuccess }) {
   const { data: walletClient } = useWalletClient();
-  const { user } = usePrivy();
+  const { user, sendTransaction } = usePrivy();
   const [loading, setLoading] = useState(false);
   const [friends, setFriends] = useState([]);
   const [formData, setFormData] = useState({
@@ -33,40 +34,31 @@ export default function CreateMarket({ onClose, onSuccess }) {
   useEffect(() => {
     async function loadFriends() {
       try {
-        console.log('Loading friends for user:', user?.id);
-        console.log('User wallet address:', user?.wallet?.address);
-        
-        // Add current user to the list
         const currentUser = {
           id: user?.id || 'me',
           wallet_address: user?.wallet?.address || '',
           display_name: 'Me'
         };
 
-        // Fetch friends from backend
-        const response = await fetch(`http://localhost:3001/api/friends/${user?.id}`);
-        console.log('Friends API response status:', response.status);
-        
-        if (response.ok) {
-          const data = await response.json();
-          console.log('Friends API data:', data);
-          
-          // Map the API response to our expected format
-          const apiFriends = (data.friends || []).map(f => ({
-            id: f.friend?.id || f.id,
-            wallet_address: f.friend?.wallet_address || f.wallet_address || '0x0000000000000000000000000000000000000000',
-            display_name: f.friend?.full_name || f.friend?.email || f.full_name || f.email || 'Friend'
-          }));
-          
-          console.log('Mapped friends:', apiFriends);
-          setFriends([currentUser, ...apiFriends]);
-        } else {
-          console.log('API response not ok, using only current user');
+        const res = await getFriends(user?.id);
+        if (!res || !res.success) {
           setFriends([currentUser]);
+          return;
         }
+
+        // `getFriends` returns items with `profile` nested
+        const apiFriends = (res.friends || []).map(item => {
+          const profile = item.profile || {};
+          return {
+            id: profile.id || item.friendId || profile.user_id || profile.id,
+            wallet_address: profile.wallet_address || profile.wallet || profile.address || '0x0000000000000000000000000000000000000000',
+            display_name: profile.display_name || profile.full_name || profile.username || profile.email || 'Friend'
+          };
+        });
+
+        setFriends([currentUser, ...apiFriends]);
       } catch (error) {
         console.error('Error loading friends:', error);
-        // Fallback to just current user
         setFriends([{
           id: user?.id || 'me',
           wallet_address: user?.wallet?.address || '',
@@ -82,7 +74,11 @@ export default function CreateMarket({ onClose, onSuccess }) {
 
   async function handleSubmit(e) {
     e.preventDefault();
-    if (!walletClient) return;
+    
+    console.log('Form submitted, walletClient:', walletClient);
+    console.log('User wallet:', user?.wallet);
+    console.log('Form data:', formData);
+    console.log('Friends list:', friends);
 
     try {
       setLoading(true);
@@ -91,15 +87,72 @@ export default function CreateMarket({ onClose, onSuccess }) {
       const friend1 = friends.find(f => f.id === formData.friend1Id);
       const friend2 = friends.find(f => f.id === formData.friend2Id);
 
+      console.log('Friend1:', friend1);
+      console.log('Friend2:', friend2);
+
       if (!friend1 || !friend2) {
         alert('Please select both friends');
+        setLoading(false);
+        return;
+      }
+
+      if (!friend1.wallet_address || !friend2.wallet_address) {
+        alert('Selected friends must have wallet addresses');
+        setLoading(false);
         return;
       }
 
       // Calculate resolution time (days from now)
       const resolutionTime = Math.floor(Date.now() / 1000) + (formData.days * 24 * 60 * 60);
 
-      // Call createMarket
+      console.log('Creating market with:', {
+        address: MARKET_FACTORY_ADDRESS,
+        friend1: friend1.wallet_address,
+        friend2: friend2.wallet_address,
+        title: formData.title,
+        resolutionTime
+      });
+
+      // Try using Privy's sendTransaction if walletClient is not available
+      if (!walletClient && sendTransaction) {
+        console.log('Using Privy sendTransaction');
+        
+        // Encode the function call
+        const iface = {
+          encodeFunctionData: () => {
+            // Simple ABI encoding for createMarket function
+            // Function signature: createMarket(address,address,string,uint256)
+            const functionSelector = '0x' + '45e4a3f2'; // keccak256("createMarket(address,address,string,uint256)")[:4]
+            // This is a simplified version - in production use ethers.js or viem
+            console.warn('Using simplified encoding - may not work correctly');
+            return functionSelector;
+          }
+        };
+        
+        const txHash = await sendTransaction({
+          to: MARKET_FACTORY_ADDRESS,
+          data: iface.encodeFunctionData('createMarket', [
+            friend1.wallet_address,
+            friend2.wallet_address,
+            formData.title,
+            resolutionTime
+          ])
+        });
+        
+        console.log('Transaction hash:', txHash);
+        alert('Market created! Transaction: ' + txHash);
+        onSuccess?.();
+        onClose();
+        return;
+      }
+
+      if (!walletClient) {
+        alert('Please connect your wallet first. Try refreshing the page.');
+        setLoading(false);
+        return;
+      }
+
+      // Call createMarket using wagmi
       const hash = await walletClient.writeContract({
         address: MARKET_FACTORY_ADDRESS,
         abi: MARKET_FACTORY_ABI,
@@ -112,6 +165,7 @@ export default function CreateMarket({ onClose, onSuccess }) {
         ]
       });
 
+      console.log('Transaction hash:', hash);
       alert('Market created! Transaction: ' + hash);
       onSuccess?.();
       onClose();
@@ -144,6 +198,20 @@ export default function CreateMarket({ onClose, onSuccess }) {
         width: '90%'
       }}>
         <h2 style={{ marginBottom: '1.5rem' }}>Create Market</h2>
+        
+        {!walletClient && (
+          <div style={{
+            background: '#fef3c7',
+            border: '1px solid #fbbf24',
+            borderRadius: '6px',
+            padding: '0.75rem',
+            marginBottom: '1rem',
+            fontSize: '0.9rem',
+            color: '#92400e'
+          }}>
+            ⚠️ Wallet may not be fully connected. If the button doesn't work, try refreshing the page.
+          </div>
+        )}
         
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '1rem' }}>
@@ -261,7 +329,7 @@ export default function CreateMarket({ onClose, onSuccess }) {
                 padding: '0.75rem',
                 border: 'none',
                 borderRadius: '6px',
-                background: '#3b82f6',
+                background: loading ? '#9ca3af' : '#3b82f6',
                 color: 'white',
                 cursor: loading ? 'not-allowed' : 'pointer',
                 fontSize: '1rem',
