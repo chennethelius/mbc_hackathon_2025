@@ -24,6 +24,12 @@ contract DateMarket is ReentrancyGuard {
     bool public resolved;
     bool public outcome; // true = YES, false = NO
     
+    // Two-party resolution system
+    bool public friend1Resolved;
+    bool public friend2Resolved;
+    bool public friend1Vote; // friend1's vote
+    bool public friend2Vote; // friend2's vote
+    
     struct Bet {
         uint256 amount;
         bool position; // true = YES, false = NO
@@ -113,18 +119,52 @@ contract DateMarket is ReentrancyGuard {
     }
 
     /**
-     * @notice Resolve the market (manual - only creator can resolve)
+     * @notice Resolve the market - both friends must vote
      * @param _outcome true if outcome is YES, false if NO
      */
     function resolve(bool _outcome) external {
-        require(msg.sender == creator, "Only creator can resolve");
+        require(msg.sender == friend1 || msg.sender == friend2, "Only the two people in the date can resolve");
         require(!resolved, "Already resolved");
         require(block.timestamp >= resolutionTime, "Too early to resolve");
 
-        resolved = true;
-        outcome = _outcome;
+        if (msg.sender == friend1) {
+            require(!friend1Resolved, "Friend1 already voted");
+            friend1Resolved = true;
+            friend1Vote = _outcome;
+        } else {
+            require(!friend2Resolved, "Friend2 already voted");
+            friend2Resolved = true;
+            friend2Vote = _outcome;
+        }
 
-        emit MarketResolved(_outcome, block.timestamp);
+        // If both have voted, resolve the market
+        // Resolution logic: Only two YES votes = YES, everything else = NO
+        if (friend1Resolved && friend2Resolved) {
+            bool finalOutcome;
+            if (friend1Vote && friend2Vote) {
+                // Both voted YES
+                finalOutcome = true;
+            } else {
+                // Anything else (both NO, or one YES one NO) = NO
+                finalOutcome = false;
+            }
+            resolved = true;
+            outcome = finalOutcome;
+            emit MarketResolved(finalOutcome, block.timestamp);
+        }
+    }
+
+    /**
+     * @notice Get resolution status
+     */
+    function getResolutionStatus() external view returns (
+        bool friend1HasVoted,
+        bool friend2HasVoted,
+        bool friend1VoteValue,
+        bool friend2VoteValue,
+        bool isResolved
+    ) {
+        return (friend1Resolved, friend2Resolved, friend1Vote, friend2Vote, resolved);
     }
 
     /**

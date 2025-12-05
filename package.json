@@ -13,6 +13,7 @@
     "@privy-io/react-auth": "^3.8.1",
     "@supabase/supabase-js": "^2.86.2",
     "@tanstack/react-query": "^5.90.12",
+    "buffer": "^6.0.3",
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.10.1",

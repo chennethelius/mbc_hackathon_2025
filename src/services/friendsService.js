@@ -181,14 +181,30 @@ export async function getFriends(userId) {
       return { success: false, error: profileError.message };
     }
 
-    // Combine friendship data with profile data
+    // Get wallet addresses for each friend
+    const { data: wallets, error: walletError } = await supabase
+      .from('wallets')
+      .select('user_id, wallet_address')
+      .in('user_id', friendIds);
+
+    if (walletError) {
+      console.error('❌ Error getting friend wallets:', walletError);
+      // Don't fail - just continue without wallets
+    }
+
+    // Combine friendship data with profile data and wallet data
     const friends = data.map(friendship => {
       const friendId = friendship.user_id === userId ? friendship.friend_id : friendship.user_id;
       const profile = profiles.find(p => p.id === friendId);
+      const wallet = wallets?.find(w => w.user_id === friendId);
+      
       return {
         ...friendship,
         friendId,
-        profile
+        profile: {
+          ...profile,
+          wallet_address: wallet?.wallet_address || null
+        }
       };
     });
 

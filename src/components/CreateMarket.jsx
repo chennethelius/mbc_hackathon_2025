@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useWalletClient } from 'wagmi';
 import { usePrivy } from '@privy-io/react-auth';
+import { encodeFunctionData } from 'viem';
 import { getFriends } from '../services/friendsService';
 
 const MARKET_FACTORY_ADDRESS = '0xCa897F235F88316f03D34ecCC7701a4dA4a36895';
@@ -28,7 +29,8 @@ export default function CreateMarket({ onClose, onSuccess }) {
     friend1Id: '',
     friend2Id: '',
     title: '',
-    days: 7
+    timeValue: 7,
+    timeUnit: 'days' // 'seconds', 'minutes', 'hours', 'days'
   });
 
   useEffect(() => {
@@ -37,10 +39,12 @@ export default function CreateMarket({ onClose, onSuccess }) {
         const currentUser = {
           id: user?.id || 'me',
           wallet_address: user?.wallet?.address || '',
-          display_name: 'Me'
+          display_name: 'Me (You)'
         };
 
         const res = await getFriends(user?.id);
+        console.log('Friends API response:', res);
+        
         if (!res || !res.success) {
           setFriends([currentUser]);
           return;
@@ -48,21 +52,27 @@ export default function CreateMarket({ onClose, onSuccess }) {
 
         // `getFriends` returns items with `profile` nested
         const apiFriends = (res.friends || []).map(item => {
+          console.log('Processing friend item:', item);
           const profile = item.profile || {};
+          const wallet = profile.wallet_address;
+          
           return {
-            id: profile.id || item.friendId || profile.user_id || profile.id,
-            wallet_address: profile.wallet_address || profile.wallet || profile.address || '0x0000000000000000000000000000000000000000',
-            display_name: profile.display_name || profile.full_name || profile.username || profile.email || 'Friend'
+            id: profile.id,
+            wallet_address: wallet || '',
+            display_name: profile.display_name || profile.full_name || profile.username || profile.email || 'Friend',
+            email: profile.email,
+            hasWallet: !!wallet
           };
         });
 
+        console.log('Processed friends:', [currentUser, ...apiFriends]);
         setFriends([currentUser, ...apiFriends]);
       } catch (error) {
         console.error('Error loading friends:', error);
         setFriends([{
           id: user?.id || 'me',
           wallet_address: user?.wallet?.address || '',
-          display_name: 'Me'
+          display_name: 'Me (You)'
         }]);
       }
     }
@@ -102,41 +112,46 @@ export default function CreateMarket({ onClose, onSuccess }) {
         return;
       }
 
-      // Calculate resolution time (days from now)
-      const resolutionTime = Math.floor(Date.now() / 1000) + (formData.days * 24 * 60 * 60);
+      // Calculate resolution time based on selected unit
+      const timeMultipliers = {
+        seconds: 1,
+        minutes: 60,
+        hours: 60 * 60,
+        days: 24 * 60 * 60
+      };
+      const secondsToAdd = formData.timeValue * timeMultipliers[formData.timeUnit];
+      const resolutionTime = Math.floor(Date.now() / 1000) + secondsToAdd;
 
       console.log('Creating market with:', {
         address: MARKET_FACTORY_ADDRESS,
         friend1: friend1.wallet_address,
         friend2: friend2.wallet_address,
         title: formData.title,
-        resolutionTime
+        resolutionTime,
+        currentTime: Math.floor(Date.now() / 1000)
       });
 
       // Try using Privy's sendTransaction if walletClient is not available
       if (!walletClient && sendTransaction) {
-        console.log('Using Privy sendTransaction');
+        console.log('Using Privy sendTransaction with proper encoding');
         
-        // Encode the function call
-        const iface = {
-          encodeFunctionData: () => {
-            // Simple ABI encoding for createMarket function
-            // Function signature: createMarket(address,address,string,uint256)
-            const functionSelector = '0x' + '45e4a3f2'; // keccak256("createMarket(address,address,string,uint256)")[:4]
-            // This is a simplified version - in production use ethers.js or viem
-            console.warn('Using simplified encoding - may not work correctly');
-            return functionSelector;
-          }
-        };
-        
-        const txHash = await sendTransaction({
-          to: MARKET_FACTORY_ADDRESS,
-          data: iface.encodeFunctionData('createMarket', [
+        // Properly encode the function call using viem
+        const data = encodeFunctionData({
+          abi: MARKET_FACTORY_ABI,
+          functionName: 'createMarket',
+          args: [
             friend1.wallet_address,
             friend2.wallet_address,
             formData.title,
-            resolutionTime
-          ])
+            BigInt(resolutionTime)
+          ]
+        });
+        
+        console.log('Encoded data:', data);
+        
+        const txHash = await sendTransaction({
+          to: MARKET_FACTORY_ADDRESS,
+          data
         });
         
         console.log('Transaction hash:', txHash);
@@ -197,7 +212,7 @@ export default function CreateMarket({ onClose, onSuccess }) {
         maxWidth: '500px',
         width: '90%'
       }}>
-        <h2 style={{ marginBottom: '1.5rem' }}>Create Market</h2>
+        <h2 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', fontWeight: 'bold' }}>Create Bet</h2>
         
         {!walletClient && (
           <div style={{
@@ -214,6 +229,15 @@ export default function CreateMarket({ onClose, onSuccess }) {
         )}
         
         <form onSubmit={handleSubmit}>
+          <div style={{ marginBottom: '1rem', padding: '0.75rem', background: '#f3f4f6', borderRadius: '6px', fontSize: '0.85rem' }}>
+            <strong>Debug Info:</strong> {friends.length} friends loaded
+            {friends.map(f => (
+              <div key={f.id} style={{fontSize: '0.75rem', marginTop: '0.25rem'}}>
+                • {f.display_name}: {f.wallet_address ? f.wallet_address.slice(0,10)+'...' : '❌ NO WALLET'}
+              </div>
+            ))}
+          </div>
+          
           <div style={{ marginBottom: '1rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
               Market Question
@@ -252,11 +276,17 @@ export default function CreateMarket({ onClose, onSuccess }) {
             >
               <option value="">Select friend...</option>
               {friends.map(friend => (
-                <option key={friend.id} value={friend.id}>
+                <option key={friend.id} value={friend.id} disabled={!friend.wallet_address}>
                   {friend.display_name || friend.wallet_address?.slice(0, 6) + '...' + friend.wallet_address?.slice(-4)}
+                  {!friend.wallet_address && ' (No wallet)'}
                 </option>
               ))}
             </select>
+            {formData.friend1Id && friends.find(f => f.id === formData.friend1Id)?.wallet_address === '' && (
+              <p style={{marginTop: '0.5rem', fontSize: '0.85rem', color: '#dc2626'}}>
+                ⚠️ This friend doesn't have a wallet address. They need to log in first.
+              </p>
+            )}
           </div>
 
           <div style={{ marginBottom: '1rem' }}>
@@ -277,31 +307,58 @@ export default function CreateMarket({ onClose, onSuccess }) {
             >
               <option value="">Select friend...</option>
               {friends.filter(f => f.id !== formData.friend1Id).map(friend => (
-                <option key={friend.id} value={friend.id}>
+                <option key={friend.id} value={friend.id} disabled={!friend.wallet_address}>
                   {friend.display_name || friend.wallet_address?.slice(0, 6) + '...' + friend.wallet_address?.slice(-4)}
+                  {!friend.wallet_address && ' (No wallet)'}
                 </option>
               ))}
             </select>
+            {formData.friend2Id && friends.find(f => f.id === formData.friend2Id)?.wallet_address === '' && (
+              <p style={{marginTop: '0.5rem', fontSize: '0.85rem', color: '#dc2626'}}>
+                ⚠️ This friend doesn't have a wallet address. They need to log in first.
+              </p>
+            )}
           </div>
 
           <div style={{ marginBottom: '1.5rem' }}>
             <label style={{ display: 'block', marginBottom: '0.5rem', fontWeight: 600 }}>
-              Resolve in (days)
+              Market Duration
             </label>
-            <input
-              type="number"
-              min="1"
-              value={formData.days}
-              onChange={(e) => setFormData({ ...formData, days: parseInt(e.target.value) })}
-              required
-              style={{
-                width: '100%',
-                padding: '0.75rem',
-                border: '1px solid #ddd',
-                borderRadius: '6px',
-                fontSize: '1rem'
-              }}
-            />
+            <div style={{ display: 'flex', gap: '0.5rem' }}>
+              <input
+                type="number"
+                min="1"
+                value={formData.timeValue}
+                onChange={(e) => setFormData({ ...formData, timeValue: parseInt(e.target.value) || 1 })}
+                required
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '1rem'
+                }}
+              />
+              <select
+                value={formData.timeUnit}
+                onChange={(e) => setFormData({ ...formData, timeUnit: e.target.value })}
+                style={{
+                  flex: 1,
+                  padding: '0.75rem',
+                  border: '1px solid #ddd',
+                  borderRadius: '6px',
+                  fontSize: '1rem'
+                }}
+              >
+                <option value="seconds">Seconds ⚡</option>
+                <option value="minutes">Minutes</option>
+                <option value="hours">Hours</option>
+                <option value="days">Days</option>
+              </select>
+            </div>
+            <div style={{ marginTop: '0.5rem', fontSize: '0.85rem', color: '#666' }}>
+              💡 Use seconds/minutes for quick testing
+            </div>
           </div>
 
           <div style={{ display: 'flex', gap: '1rem' }}>
