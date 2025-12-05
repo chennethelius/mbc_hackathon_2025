@@ -22,6 +22,24 @@
   gap: 0.75rem;
 }
 
+.btn-markets {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--text-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  background: var(--peach);
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.btn-markets:hover {
+  background: #FFD4A3;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .btn-friends-nav {
   padding: 0.6rem 1.2rem;
   border: 2px solid var(--text-primary);
@@ -170,6 +188,7 @@
     display: none;
   }
 
+  .btn-markets,
   .btn-friends-nav,
   .btn-wallet {
     padding: 0.5rem 0.8rem;

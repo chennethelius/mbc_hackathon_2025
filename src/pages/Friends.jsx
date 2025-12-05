@@ -14,6 +14,8 @@ import {
 import FriendCard from '../components/FriendCard';
 import FriendRequestCard from '../components/FriendRequestCard';
 import UserSearchCard from '../components/UserSearchCard';
+import VouchForOthers from '../components/VouchForOthers';
+import VouchProfile from '../components/VouchProfile';
 import './Friends.css';
 
 function Friends() {
@@ -38,7 +40,9 @@ function Friends() {
     { id: 'all', label: 'All Friends', count: friends.length },
     { id: 'requests', label: 'Requests', count: incomingRequests.length },
     { id: 'sent', label: 'Sent', count: sentRequests.length },
-    { id: 'find', label: 'Find Friends', count: null }
+    { id: 'find', label: 'Find Friends', count: null },
+    { id: 'vouch-others', label: 'Vouch for Others', count: null },
+    { id: 'vouch-profile', label: 'Your Vouch Profile', count: null }
   ];
 
   // Check authentication
@@ -72,6 +76,10 @@ function Friends() {
           break;
         case 'find':
           // Search is triggered by user input
+          break;
+        case 'vouch-others':
+        case 'vouch-profile':
+          // Vouch tabs - no data to preload
           break;
         default:
           break;
@@ -210,19 +218,17 @@ function Friends() {
     <div className="friends-page">
       <div className="friends-container">
         <div className="friends-header">
-          <div className="friends-header-content">
-            <h1>Friends</h1>
-            <button className="btn-back" onClick={() => navigate('/')}>
-              ← Back to Home
-            </button>
-          </div>
-          
-          {message && (
-            <div className={`friends-message ${messageType}`}>
-              {message}
-            </div>
-          )}
+          <h1>Friends</h1>
+          <button className="btn-back" onClick={() => navigate('/')}>
+            ← Back to Home
+          </button>
         </div>
+        
+        {message && (
+          <div className={`friends-message ${messageType}`}>
+            {message}
+          </div>
+        )}
 
         <div className="friends-content">
           <div className="friends-tabs">
@@ -232,6 +238,7 @@ function Friends() {
                 className={`tab-button ${activeTab === tab.id ? 'active' : ''}`}
                 onClick={() => setActiveTab(tab.id)}
               >
+                {tab.icon && <span className="tab-icon">{tab.icon}</span>}
                 {tab.label}
                 {tab.count !== null && tab.count > 0 && (
                   <span className="tab-count">{tab.count}</span>
@@ -393,6 +400,20 @@ function Friends() {
                     <p>Enter a username or name to find people to connect with.</p>
                   </div>
                 )}
+              </div>
+            )}
+
+            {/* Vouch for Others Tab */}
+            {activeTab === 'vouch-others' && (
+              <div className="tab-content">
+                <VouchForOthers userId={privyUser.id} />
+              </div>
+            )}
+
+            {/* Your Vouch Profile Tab */}
+            {activeTab === 'vouch-profile' && (
+              <div className="tab-content">
+                <VouchProfile userId={privyUser.id} />
               </div>
             )}
           </div>
