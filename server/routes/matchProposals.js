@@ -290,16 +290,31 @@ router.post('/:proposalId/accept', async (req, res) => {
           }
         });
         
-        const marketAddress = event ? marketFactory.interface.parseLog(event).args.marketAddress : null;
+        if (!event) {
+          console.error('No MarketCreated event found in logs');
+          throw new Error('Failed to get market address from event');
+        }
+        
+        const parsedEvent = marketFactory.interface.parseLog(event);
+        const marketAddress = parsedEvent.args.marketAddress;
+        console.log('Market address from event:', marketAddress);
         
         if (marketAddress) {
           // Step 2: Add eligible bettors to the market
           if (eligibleBettors.length > 0) {
-            console.log(`Adding ${eligibleBettors.length} eligible bettors to market...`);
+            console.log(`Adding ${eligibleBettors.length} eligible bettors to market ${marketAddress}...`);
             const marketContract = getContract(marketAddress, DATE_MARKET_ABI);
-            const addBettorsTx = await marketContract.addEligibleBettors(eligibleBettors);
-            await addBettorsTx.wait();
-            console.log('✅ Eligible bettors added');
+            
+            try {
+              const addBettorsTx = await marketContract.addEligibleBettors(eligibleBettors);
+              console.log('Add bettors transaction sent:', addBettorsTx.hash);
+              const addBettorsReceipt = await addBettorsTx.wait();
+              console.log('Add bettors confirmed:', addBettorsReceipt.hash);
+              console.log('✅ Eligible bettors added');
+            } catch (addBettorsError) {
+              console.error('Failed to add eligible bettors:', addBettorsError);
+              // Continue anyway - market is created
+            }
           }
           
           // Store market in database

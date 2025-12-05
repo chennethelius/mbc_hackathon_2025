@@ -315,6 +315,24 @@ export default function Markets() {
           data: betData
         });
         
+        // Record bet in database
+        try {
+          await fetch('http://localhost:3001/api/bets', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              user_id: user?.id,
+              contract_address: market.address,
+              wallet_address: user?.wallet?.address,
+              position,
+              amount: Number(amount),
+              transaction_hash: betHash
+            })
+          });
+        } catch (dbError) {
+          console.error('Failed to record bet in database:', dbError);
+        }
+        
         alert(`Bet placed! Transaction: ${betHash}`);
         await loadMarkets();
         return;
@@ -344,6 +362,26 @@ export default function Markets() {
         functionName: 'placeBet',
         args: [position, amountInDecimals]
       });
+
+      console.log('Bet transaction:', betHash);
+      
+      // Record bet in database
+      try {
+        await fetch('http://localhost:3001/api/bets', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            user_id: user?.id,
+            contract_address: market.address,
+            wallet_address: user?.wallet?.address,
+            position,
+            amount: Number(amount),
+            transaction_hash: betHash
+          })
+        });
+      } catch (dbError) {
+        console.error('Failed to record bet in database:', dbError);
+      }
 
       alert(`Bet placed! Transaction: ${betHash}`);
       await loadMarkets();
