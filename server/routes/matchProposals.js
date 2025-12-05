@@ -14,7 +14,7 @@ const MARKET_FACTORY_ABI = [
 /**
  * Get match proposals for a user
  * GET /api/match-proposals/:userId
- * Query params: ?role=all|matchmaker|friend_b|girl_c
+ * Query params: ?role=all|matchmaker|vouched_friend|matched_person
  */
 router.get('/:userId', async (req, res) => {
   try {
@@ -26,20 +26,20 @@ router.get('/:userId', async (req, res) => {
       .select(`
         *,
         matchmaker:matchmaker_id(id, display_name, full_name, email),
-        friendB:friend_b_id(id, display_name, full_name, email),
-        girlC:girl_c_id(id, display_name, full_name, email)
+        vouchedFriend:vouched_friend_id(id, display_name, full_name, email),
+        matchedPerson:matched_person_id(id, display_name, full_name, email)
       `);
 
     // Filter by role
     if (role === 'matchmaker') {
       query = query.eq('matchmaker_id', userId);
-    } else if (role === 'friend_b') {
-      query = query.eq('friend_b_id', userId);
-    } else if (role === 'girl_c') {
-      query = query.eq('girl_c_id', userId);
+    } else if (role === 'vouched_friend') {
+      query = query.eq('vouched_friend_id', userId);
+    } else if (role === 'matched_person') {
+      query = query.eq('matched_person_id', userId);
     } else {
       // All proposals where user is involved
-      query = query.or(`matchmaker_id.eq.${userId},friend_b_id.eq.${userId},girl_c_id.eq.${userId}`);
+      query = query.or(`matchmaker_id.eq.${userId},vouched_friend_id.eq.${userId},matched_person_id.eq.${userId}`);
     }
 
     const { data, error} = await query.order('created_at', { ascending: false });
@@ -56,23 +56,23 @@ router.get('/:userId', async (req, res) => {
 /**
  * Create a match proposal
  * POST /api/match-proposals
- * Body: { matchmakerId, friendBId, girlCId, title }
+ * Body: { matchmakerId, vouchedFriendId, matchedPersonId, title }
  */
 router.post('/', async (req, res) => {
   try {
-    const { matchmakerId, friendBId, girlCId, title } = req.body;
+    const { matchmakerId, vouchedFriendId, matchedPersonId, title } = req.body;
 
-    if (!matchmakerId || !friendBId || !girlCId || !title) {
+    if (!matchmakerId || !vouchedFriendId || !matchedPersonId || !title) {
       return res.status(400).json({
         success: false,
-        error: 'matchmakerId, friendBId, girlCId, and title required'
+        error: 'matchmakerId, vouchedFriendId, matchedPersonId, and title required'
       });
     }
 
-    if (friendBId === girlCId) {
+    if (vouchedFriendId === matchedPersonId) {
       return res.status(400).json({
         success: false,
-        error: 'friendB and girlC must be different people'
+        error: 'Vouched friend and matched person must be different people'
       });
     }
 
@@ -80,8 +80,8 @@ router.post('/', async (req, res) => {
       .from('match_proposals')
       .insert({
         matchmaker_id: matchmakerId,
-        friend_b_id: friendBId,
-        girl_c_id: girlCId,
+        vouched_friend_id: vouchedFriendId,
+        matched_person_id: matchedPersonId,
         title,
         status: 'pending'
       })
@@ -94,21 +94,21 @@ router.post('/', async (req, res) => {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, display_name, full_name, email')
-      .in('id', [matchmakerId, friendBId, girlCId]);
+      .in('id', [matchmakerId, vouchedFriendId, matchedPersonId]);
 
     const matcherProfile = profiles?.find(p => p.id === matchmakerId);
-    const friendBProfile = profiles?.find(p => p.id === friendBId);
-    const girlCProfile = profiles?.find(p => p.id === girlCId);
+    const vouchedFriendProfile = profiles?.find(p => p.id === vouchedFriendId);
+    const matchedPersonProfile = profiles?.find(p => p.id === matchedPersonId);
 
-    // Create notifications for Friend B and Girl C
+    // Create notifications for vouched friend and matched person
     const notifications = [
       {
-        user_id: friendBId,
+        user_id: vouchedFriendId,
         type: 'match',
         title: 'New Match Proposal!',
-        message: `${matcherProfile?.display_name || 'Someone'} wants to set you up with ${girlCProfile?.display_name || 'someone'}`,
-        related_user_id: girlCId,
-        related_user_profile: girlCProfile,
+        message: `${matcherProfile?.display_name || 'Someone'} wants to set you up with ${matchedPersonProfile?.display_name || 'someone'}`,
+        related_user_id: matchedPersonId,
+        related_user_profile: matchedPersonProfile,
         matcher_id: matchmakerId,
         matcher_profile: matcherProfile,
         proposal_id: data.id,
@@ -116,12 +116,12 @@ router.post('/', async (req, res) => {
         deadline: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString() // 7 days
       },
       {
-        user_id: girlCId,
+        user_id: matchedPersonId,
         type: 'match',
         title: 'New Match Proposal!',
-        message: `${matcherProfile?.display_name || 'Someone'} wants to set you up with ${friendBProfile?.display_name || 'someone'}`,
-        related_user_id: friendBId,
-        related_user_profile: friendBProfile,
+        message: `${matcherProfile?.display_name || 'Someone'} wants to set you up with ${vouchedFriendProfile?.display_name || 'someone'}`,
+        related_user_id: vouchedFriendId,
+        related_user_profile: vouchedFriendProfile,
         matcher_id: matchmakerId,
         matcher_profile: matcherProfile,
         proposal_id: data.id,
@@ -140,7 +140,7 @@ router.post('/', async (req, res) => {
 });
 
 /**
- * Accept a match proposal (Girl C only)
+ * Accept a match proposal (Matched person only)
  * POST /api/match-proposals/:proposalId/accept
  * Body: { userId, dateTime }
  */
@@ -156,7 +156,7 @@ router.post('/:proposalId/accept', async (req, res) => {
       });
     }
 
-    // Verify user is girl_c
+    // Verify user is the matched person
     const { data: proposal, error: fetchError } = await supabase
       .from('match_proposals')
       .select('*')
@@ -165,10 +165,10 @@ router.post('/:proposalId/accept', async (req, res) => {
 
     if (fetchError) throw fetchError;
 
-    if (proposal.girl_c_id !== userId) {
+    if (proposal.matched_person_id !== userId) {
       return res.status(403).json({
         success: false,
-        error: 'Only girl C can accept this proposal'
+        error: 'Only the matched person can accept this proposal'
       });
     }
 
@@ -193,30 +193,30 @@ router.post('/:proposalId/accept', async (req, res) => {
 
     if (error) throw error;
 
-    // Get vouchers for Friend B and Girl C to add as eligible bettors
+    // Get vouchers for vouched friend and matched person to add as eligible bettors
     const { data: vouchers, error: vouchersError } = await supabase
       .from('vouchers')
       .select('user_id, wallet_address')
-      .or(`vouched_for_id.eq.${proposal.friend_b_id},vouched_for_id.eq.${proposal.girl_c_id}`);
+      .or(`vouched_for_id.eq.${proposal.vouched_friend_id},vouched_for_id.eq.${proposal.matched_person_id}`);
 
     if (vouchersError) {
       console.error('Error fetching vouchers:', vouchersError);
       // Continue even if vouchers fetch fails
     }
 
-    // Get wallet addresses for Friend B and Girl C
+    // Get wallet addresses for vouched friend and matched person
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, wallet_address')
-      .in('id', [proposal.friend_b_id, proposal.girl_c_id]);
+      .in('id', [proposal.vouched_friend_id, proposal.matched_person_id]);
 
-    const friendBProfile = profiles?.find(p => p.id === proposal.friend_b_id);
-    const girlCProfile = profiles?.find(p => p.id === proposal.girl_c_id);
+    const vouchedFriendProfile = profiles?.find(p => p.id === proposal.vouched_friend_id);
+    const matchedPersonProfile = profiles?.find(p => p.id === proposal.matched_person_id);
 
-    if (!friendBProfile?.wallet_address || !girlCProfile?.wallet_address) {
+    if (!vouchedFriendProfile?.wallet_address || !matchedPersonProfile?.wallet_address) {
       return res.status(400).json({
         success: false,
-        error: 'Friend B or Girl C does not have a wallet address'
+        error: 'Vouched friend or matched person does not have a wallet address'
       });
     }
 
@@ -234,16 +234,16 @@ router.post('/:proposalId/accept', async (req, res) => {
         const resolutionTime = Math.floor(new Date(dateTime).getTime() / 1000);
         
         console.log('Creating market with:', {
-          friendB: friendBProfile.wallet_address,
-          girlC: girlCProfile.wallet_address,
+          vouchedFriend: vouchedFriendProfile.wallet_address,
+          matchedPerson: matchedPersonProfile.wallet_address,
           title: proposal.title,
           resolutionTime,
           bettorCount: eligibleBettors.length
         });
         
         const tx = await marketFactory.createMarketWithBettors(
-          friendBProfile.wallet_address,
-          girlCProfile.wallet_address,
+          vouchedFriendProfile.wallet_address,
+          matchedPersonProfile.wallet_address,
           proposal.title,
           resolutionTime,
           eligibleBettors
@@ -270,8 +270,8 @@ router.post('/:proposalId/accept', async (req, res) => {
           await supabase.from('markets').insert({
             match_proposal_id: proposalId,
             contract_address: marketAddress,
-            friend_b_id: proposal.friend_b_id,
-            girl_c_id: proposal.girl_c_id,
+            vouched_friend_id: proposal.vouched_friend_id,
+            matched_person_id: proposal.matched_person_id,
             resolution_time: dateTime,
             resolved: false
           });
@@ -324,7 +324,7 @@ router.post('/:proposalId/reject', async (req, res) => {
       });
     }
 
-    // Verify user is friend_b or girl_c
+    // Verify user is vouched_friend or matched_person
     const { data: proposal, error: fetchError } = await supabase
       .from('match_proposals')
       .select('*')
@@ -333,7 +333,7 @@ router.post('/:proposalId/reject', async (req, res) => {
 
     if (fetchError) throw fetchError;
 
-    if (proposal.friend_b_id !== userId && proposal.girl_c_id !== userId) {
+    if (proposal.vouched_friend_id !== userId && proposal.matched_person_id !== userId) {
       return res.status(403).json({
         success: false,
         error: 'Only participants can reject this proposal'

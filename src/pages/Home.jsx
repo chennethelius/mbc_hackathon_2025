@@ -529,22 +529,22 @@ function Home({ user, authenticated }) {
 
     setMatching(true);
     try {
-      // Calculate deadline date
-      const deadlineDate = new Date();
-      deadlineDate.setDate(deadlineDate.getDate() + matchDeadlineDays);
-      
-      const result = await sendMatchNotification(
-        selectedTopUser.id,
-        selectedBottomUser.id,
-        selectedTopUser,
-        selectedBottomUser,
-        privyUser?.id, // Matcher's ID
-        currentUserProfile, // Matcher's profile
-        deadlineDate.toISOString() // Deadline date
-      );
+      // Create match proposal through backend API
+      const response = await fetch('http://localhost:3001/api/match-proposals', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          matchmakerId: privyUser?.id,
+          vouchedFriendId: selectedTopUser.id,
+          matchedPersonId: selectedBottomUser.id,
+          title: `${selectedTopUser.display_name} + ${selectedBottomUser.display_name}`
+        })
+      });
+
+      const result = await response.json();
 
       if (result.success) {
-        console.log('✅ Match notifications sent successfully');
+        console.log('✅ Match proposal created successfully:', result.proposal);
         // Close the match popup
         setShowMatchPopup(false);
         
@@ -561,12 +561,12 @@ function Home({ user, authenticated }) {
           setShowMatchSuccessPopup(true);
         }, 300);
       } else {
-        console.error('❌ Error sending match notifications:', result.error);
-        alert('Failed to send match notifications: ' + result.error);
+        console.error('❌ Error creating match proposal:', result.error);
+        alert('Failed to create match: ' + result.error);
       }
     } catch (error) {
-      console.error('❌ Exception sending match notifications:', error);
-      alert('An error occurred while sending match notifications.');
+      console.error('❌ Exception creating match proposal:', error);
+      alert('An error occurred while creating the match.');
     } finally {
       setMatching(false);
     }
