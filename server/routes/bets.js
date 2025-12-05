@@ -44,65 +44,39 @@ router.get('/user/:userId', async (req, res) => {
 // Place a bet
 router.post('/', async (req, res) => {
   try {
-    const { market_id, user_id, position, amount } = req.body;
+    const { user_id, market_id, contract_address, wallet_address, position, amount, transaction_hash } = req.body;
 
     // Validation
-    if (!market_id || !user_id || typeof position !== 'boolean' || !amount) {
-      return res.status(400).json({ error: 'Missing required fields' });
+    if (!user_id || !contract_address || !wallet_address || typeof position !== 'boolean' || !amount) {
+      return res.status(400).json({ error: 'Missing required fields: user_id, contract_address, wallet_address, position, amount' });
     }
 
     if (amount <= 0) {
       return res.status(400).json({ error: 'Amount must be positive' });
     }
 
-    // Check if market exists and is active
-    const { data: market, error: marketError } = await supabase
-      .from('markets')
-      .select('*')
-      .eq('id', market_id)
-      .single();
-
-    if (marketError) throw marketError;
-    if (!market) return res.status(404).json({ error: 'Market not found' });
-    if (market.status !== 'active') {
-      return res.status(400).json({ error: 'Market is not active' });
-    }
-
-    // Create bet
+    // Create bet record
     const { data: bet, error: betError } = await supabase
       .from('bets')
       .insert({
-        market_id,
         user_id,
+        market_id: market_id || null,
+        contract_address,
+        wallet_address,
         position,
         amount,
-        status: 'active'
+        transaction_hash: transaction_hash || null,
+        claimed: false
       })
       .select()
       .single();
 
     if (betError) throw betError;
 
-    // Update market pool
-    const poolColumn = position ? 'total_yes_pool' : 'total_no_pool';
-    const currentPool = parseFloat(market[poolColumn]);
-    const newPool = currentPool + parseFloat(amount);
-
-    await supabase
-      .from('markets')
-      .update({ [poolColumn]: newPool })
-      .eq('id', market_id);
-
-    // Update user's bet count
-    await supabase.rpc('increment', {
-      table_name: 'profiles',
-      row_id: user_id,
-      column_name: 'total_bets_placed'
-    });
-
-    res.status(201).json({ bet });
+    res.status(201).json({ success: true, bet });
   } catch (error) {
-    res.status(500).json({ error: error.message });
+    console.error('Error placing bet:', error);
+    res.status(500).json({ success: false, error: error.message });
   }
 });
 

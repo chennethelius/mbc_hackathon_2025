@@ -7,8 +7,12 @@ import { MARKET_FACTORY_ADDRESS } from '../config/blockchain.js';
 const router = express.Router();
 
 const MARKET_FACTORY_ABI = [
-  "function createMarketWithBettors(address friend1, address friend2, string memory title, uint256 resolutionTime, address[] memory eligibleBettors) external returns (address)",
+  "function createMarket(address friend1, address friend2, string memory title, uint256 resolutionTime) external returns (address)",
   "event MarketCreated(address indexed marketAddress, address indexed creator, address friend1, address friend2, string title, uint256 timestamp)"
+];
+
+const DATE_MARKET_ABI = [
+  "function addEligibleBettors(address[] calldata bettors) external"
 ];
 
 /**
@@ -264,12 +268,12 @@ router.post('/:proposalId/accept', async (req, res) => {
           bettorCount: eligibleBettors.length
         });
         
-        const tx = await marketFactory.createMarketWithBettors(
+        // Step 1: Create the market
+        const tx = await marketFactory.createMarket(
           vouchedFriendWallet.wallet_address,
           matchedPersonWallet.wallet_address,
           proposal.title,
-          resolutionTime,
-          eligibleBettors
+          resolutionTime
         );
         
         console.log('Transaction sent:', tx.hash);
@@ -289,6 +293,15 @@ router.post('/:proposalId/accept', async (req, res) => {
         const marketAddress = event ? marketFactory.interface.parseLog(event).args.marketAddress : null;
         
         if (marketAddress) {
+          // Step 2: Add eligible bettors to the market
+          if (eligibleBettors.length > 0) {
+            console.log(`Adding ${eligibleBettors.length} eligible bettors to market...`);
+            const marketContract = getContract(marketAddress, DATE_MARKET_ABI);
+            const addBettorsTx = await marketContract.addEligibleBettors(eligibleBettors);
+            await addBettorsTx.wait();
+            console.log('✅ Eligible bettors added');
+          }
+          
           // Store market in database
           await supabase.from('markets').insert({
             match_proposal_id: proposalId,
