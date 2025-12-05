@@ -146,6 +146,51 @@ const DATE_MARKET_ABI = [
     ],
     "stateMutability": "view",
     "type": "function"
+  },
+  {
+    "inputs": [{"name": "position", "type": "bool"}, {"name": "amount", "type": "uint256"}],
+    "name": "placeBet",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "claimWinnings",
+    "outputs": [],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [],
+    "name": "usdcToken",
+    "outputs": [{"type": "address"}],
+    "stateMutability": "view",
+    "type": "function"
+  },
+  {
+    "inputs": [{"name": "", "type": "address"}],
+    "name": "canBet",
+    "outputs": [{"type": "bool"}],
+    "stateMutability": "view",
+    "type": "function"
+  }
+];
+
+const USDC_ABI = [
+  {
+    "inputs": [{"name": "spender", "type": "address"}, {"name": "amount", "type": "uint256"}],
+    "name": "approve",
+    "outputs": [{"type": "bool"}],
+    "stateMutability": "nonpayable",
+    "type": "function"
+  },
+  {
+    "inputs": [{"name": "account", "type": "address"}],
+    "name": "balanceOf",
+    "outputs": [{"type": "uint256"}],
+    "stateMutability": "view",
+    "type": "function"
   }
 ];
 
@@ -158,6 +203,7 @@ export default function Markets() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [resolvingMarket, setResolvingMarket] = useState(null);
   const [lastUpdateTime, setLastUpdateTime] = useState(Date.now());
+  const [bettingMarket, setBettingMarket] = useState(null);
 
   useEffect(() => {
     if (authenticated && publicClient) {
@@ -221,6 +267,133 @@ export default function Markets() {
       alert('Failed to resolve market: ' + error.message);
     } finally {
       setResolvingMarket(null);
+    }
+  }
+
+  async function handlePlaceBet(market, position) {
+    const amount = prompt(`Enter bet amount in USDC (you have ${position ? 'YES' : 'NO'}):`, '10');
+    if (!amount || isNaN(amount) || Number(amount) <= 0) return;
+
+    try {
+      setBettingMarket(market.address);
+      const amountInDecimals = BigInt(Math.floor(Number(amount) * 1e6)); // USDC has 6 decimals
+
+      // Get USDC contract address from market
+      const usdcAddress = await publicClient.readContract({
+        address: market.address,
+        abi: DATE_MARKET_ABI,
+        functionName: 'usdcToken'
+      });
+
+      // First, approve USDC spending
+      if (sendTransaction) {
+        const approveData = encodeFunctionData({
+          abi: USDC_ABI,
+          functionName: 'approve',
+          args: [market.address, amountInDecimals]
+        });
+        
+        const approveHash = await sendTransaction({
+          to: usdcAddress,
+          data: approveData
+        });
+        
+        console.log('Approval transaction:', approveHash);
+        
+        // Wait a bit for approval to confirm
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        // Now place the bet
+        const betData = encodeFunctionData({
+          abi: DATE_MARKET_ABI,
+          functionName: 'placeBet',
+          args: [position, amountInDecimals]
+        });
+        
+        const betHash = await sendTransaction({
+          to: market.address,
+          data: betData
+        });
+        
+        alert(`Bet placed! Transaction: ${betHash}`);
+        await loadMarkets();
+        return;
+      }
+
+      // Fallback to walletClient
+      if (!walletClient) {
+        alert('Please connect your wallet');
+        return;
+      }
+
+      // Approve USDC
+      const approveHash = await walletClient.writeContract({
+        address: usdcAddress,
+        abi: USDC_ABI,
+        functionName: 'approve',
+        args: [market.address, amountInDecimals]
+      });
+
+      console.log('Approval transaction:', approveHash);
+      await new Promise(resolve => setTimeout(resolve, 2000));
+
+      // Place bet
+      const betHash = await walletClient.writeContract({
+        address: market.address,
+        abi: DATE_MARKET_ABI,
+        functionName: 'placeBet',
+        args: [position, amountInDecimals]
+      });
+
+      alert(`Bet placed! Transaction: ${betHash}`);
+      await loadMarkets();
+    } catch (error) {
+      console.error('Error placing bet:', error);
+      alert('Failed to place bet: ' + error.message);
+    } finally {
+      setBettingMarket(null);
+    }
+  }
+
+  async function handleClaimWinnings(market) {
+    try {
+      setBettingMarket(market.address);
+      
+      if (sendTransaction) {
+        const data = encodeFunctionData({
+          abi: DATE_MARKET_ABI,
+          functionName: 'claimWinnings',
+          args: []
+        });
+        
+        const hash = await sendTransaction({
+          to: market.address,
+          data
+        });
+        
+        alert(`Winnings claimed! Transaction: ${hash}`);
+        await loadMarkets();
+        return;
+      }
+
+      if (!walletClient) {
+        alert('Please connect your wallet');
+        return;
+      }
+
+      const hash = await walletClient.writeContract({
+        address: market.address,
+        abi: DATE_MARKET_ABI,
+        functionName: 'claimWinnings'
+      });
+
+      alert(`Winnings claimed! Transaction: ${hash}`);
+      await loadMarkets();
+    } catch (error) {
+      console.error('Error claiming winnings:', error);
+      alert('Failed to claim winnings: ' + error.message);
+    } finally {
+      setBettingMarket(null);
     }
   }
 
@@ -505,11 +678,19 @@ export default function Markets() {
                     {/* Betting controls for active markets */}
                     {!market.resolved && !isPastResolution && (
                       <div className="betting-actions">
-                        <button className="btn-bet btn-bet-yes">
-                          Bet YES
+                        <button 
+                          className="btn-bet btn-bet-yes"
+                          onClick={() => handlePlaceBet(market, true)}
+                          disabled={bettingMarket === market.address}
+                        >
+                          {bettingMarket === market.address ? 'Processing...' : 'Bet YES'}
                         </button>
-                        <button className="btn-bet btn-bet-no">
-                          Bet NO
+                        <button 
+                          className="btn-bet btn-bet-no"
+                          onClick={() => handlePlaceBet(market, false)}
+                          disabled={bettingMarket === market.address}
+                        >
+                          {bettingMarket === market.address ? 'Processing...' : 'Bet NO'}
                         </button>
                       </div>
                     )}
@@ -517,8 +698,12 @@ export default function Markets() {
                     {/* Claim winnings for resolved markets */}
                     {market.resolved && (
                       <div className="betting-actions">
-                        <button className="btn-claim">
-                          Claim Winnings
+                        <button 
+                          className="btn-claim"
+                          onClick={() => handleClaimWinnings(market)}
+                          disabled={bettingMarket === market.address}
+                        >
+                          {bettingMarket === market.address ? 'Processing...' : 'Claim Winnings'}
                         </button>
                       </div>
                     )}

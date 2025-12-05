@@ -230,9 +230,23 @@ router.post('/:proposalId/accept', async (req, res) => {
     }
 
     // Get unique wallet addresses of eligible bettors
-    const eligibleBettors = vouchers 
+    // If no vouchers exist, allow ALL users to bet (for testing/demo purposes)
+    let eligibleBettors = vouchers && vouchers.length > 0
       ? [...new Set(vouchers.map(v => v.wallet_address).filter(Boolean))]
       : [];
+    
+    // If still no eligible bettors, get all wallet addresses to allow everyone to bet
+    if (eligibleBettors.length === 0) {
+      console.log('No vouchers found, allowing all users to bet');
+      const { data: allWallets } = await supabase
+        .from('wallets')
+        .select('wallet_address');
+      
+      if (allWallets && allWallets.length > 0) {
+        eligibleBettors = allWallets.map(w => w.wallet_address).filter(Boolean);
+        console.log(`Added ${eligibleBettors.length} wallet addresses as eligible bettors`);
+      }
+    }
 
     // Create blockchain market
     try {
