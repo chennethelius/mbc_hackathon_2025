@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
+import confetti from 'canvas-confetti';
 import { getVouchesGiven, getVouchesReceived, getOtherVouches } from '../services/vouchService';
 import { fetchUserProfile } from '../services/userSync';
+import { sendMatchNotification } from '../services/notificationService';
 import LoginModal from '../components/LoginModal';
 import ProfileCard from '../components/ProfileCard';
 import './Home.css';
@@ -24,6 +26,12 @@ function Home({ user, authenticated }) {
   const [showVouchesPopup, setShowVouchesPopup] = useState(false);
   const [selectedProfileForVouches, setSelectedProfileForVouches] = useState(null);
   const [vouchesList, setVouchesList] = useState([]);
+  const [selectedTopUser, setSelectedTopUser] = useState(null); // Currently selected user in top carousel
+  const [selectedBottomUser, setSelectedBottomUser] = useState(null); // Currently selected user in bottom carousel
+  const [showMatchPopup, setShowMatchPopup] = useState(false); // Show match popup
+  const [matching, setMatching] = useState(false); // Loading state for match button
+  const [showMatchSuccessPopup, setShowMatchSuccessPopup] = useState(false); // Show match success popup
+  const [matchDeadlineDays, setMatchDeadlineDays] = useState(7); // Default to 7 days
   
   // Load current user's profile
   useEffect(() => {
@@ -113,6 +121,28 @@ function Home({ user, authenticated }) {
 
     loadVouchesCounts();
   }, [otherVouches, vouchedFriends]);
+
+  // Update selected top user when centerIndex changes
+  useEffect(() => {
+    if (otherVouches.length > 0 && centerIndex >= 0 && centerIndex < 10) {
+      // Get the vouch at the current center index (cycling through otherVouches)
+      const vouch = otherVouches[centerIndex % otherVouches.length];
+      setSelectedTopUser(vouch?.vouchee || null);
+    } else {
+      setSelectedTopUser(null);
+    }
+  }, [centerIndex, otherVouches]);
+
+  // Update selected bottom user when centerIndex2 changes
+  useEffect(() => {
+    if (vouchedFriends.length > 0 && centerIndex2 >= 0 && centerIndex2 < 10) {
+      // Get the friend at the current center index (cycling through vouchedFriends)
+      const friend = vouchedFriends[centerIndex2 % vouchedFriends.length];
+      setSelectedBottomUser(friend?.vouchee || null);
+    } else {
+      setSelectedBottomUser(null);
+    }
+  }, [centerIndex2, vouchedFriends]);
 
   // Create cards for top carousel - use vouches not involving me
   const originalCards = Array.from({ length: 10 }, (_, i) => {
@@ -466,7 +496,7 @@ function Home({ user, authenticated }) {
   };
 
   // Handle vouches count badge click
-  const handleVouchesBadgeClick = async (profile) => {
+  const handleVouchesBadgeClick = async (profile, currentVouchId) => {
     if (!profile?.id) return;
     
     setSelectedProfileForVouches(profile);
@@ -475,9 +505,9 @@ function Home({ user, authenticated }) {
     // Fetch vouches received for this profile
     const result = await getVouchesReceived(profile.id);
     if (result.success) {
-      // Filter out the current user's vouch to show only "other vouches"
+      // Filter out the current vouch being displayed to show only "other vouches"
       const otherVouches = (result.vouches || []).filter(
-        vouch => vouch.voucher?.id !== privyUser?.id
+        vouch => vouch.id !== currentVouchId
       );
       setVouchesList(otherVouches);
     } else {
@@ -491,6 +521,55 @@ function Home({ user, authenticated }) {
     setShowVouchesPopup(false);
     setSelectedProfileForVouches(null);
     setVouchesList([]);
+  };
+
+  // Handle match confirmation - send notifications to both users
+  const handleMatchConfirm = async () => {
+    if (!selectedTopUser || !selectedBottomUser || matching) return;
+
+    setMatching(true);
+    try {
+      // Calculate deadline date
+      const deadlineDate = new Date();
+      deadlineDate.setDate(deadlineDate.getDate() + matchDeadlineDays);
+      
+      const result = await sendMatchNotification(
+        selectedTopUser.id,
+        selectedBottomUser.id,
+        selectedTopUser,
+        selectedBottomUser,
+        privyUser?.id, // Matcher's ID
+        currentUserProfile, // Matcher's profile
+        deadlineDate.toISOString() // Deadline date
+      );
+
+      if (result.success) {
+        console.log('✅ Match notifications sent successfully');
+        // Close the match popup
+        setShowMatchPopup(false);
+        
+        // Trigger confetti effect
+        confetti({
+          particleCount: 100,
+          spread: 70,
+          origin: { y: 0.6 },
+          colors: ['#FF69B4', '#FFB6C1', '#FFC0CB', '#FFD700', '#FFA500', '#FF6347']
+        });
+        
+        // Show success popup after a brief delay
+        setTimeout(() => {
+          setShowMatchSuccessPopup(true);
+        }, 300);
+      } else {
+        console.error('❌ Error sending match notifications:', result.error);
+        alert('Failed to send match notifications: ' + result.error);
+      }
+    } catch (error) {
+      console.error('❌ Exception sending match notifications:', error);
+      alert('An error occurred while sending match notifications.');
+    } finally {
+      setMatching(false);
+    }
   };
 
   if (!authenticated) {
@@ -617,15 +696,15 @@ function Home({ user, authenticated }) {
                           <div>{card.voucher?.display_name || card.voucher?.username || 'Someone'}</div>
                           <div>vouched for ...</div>
                         </span>
-                        {vouchesCounts[card.profile.id] !== undefined && vouchesCounts[card.profile.id] > 1 && (
+                        {vouchesCounts[card.profile.id] !== undefined && (
                           <button 
                             className="vouches-count-badge"
                             onClick={(e) => {
                               e.stopPropagation();
-                              handleVouchesBadgeClick(card.profile);
+                              handleVouchesBadgeClick(card.profile, card.vouch?.id);
                             }}
                           >
-                            +{vouchesCounts[card.profile.id] - 1}
+                            +{Math.max(0, vouchesCounts[card.profile.id] - 1)}
                           </button>
                         )}
                       </div>
@@ -647,7 +726,15 @@ function Home({ user, authenticated }) {
 
         {/* Match Button */}
         <div className="match-button-container">
-          <button className="match-button" onClick={() => {}}>
+          <button 
+            className="match-button" 
+            onClick={() => {
+              if (selectedTopUser && selectedBottomUser) {
+                setShowMatchPopup(true);
+              }
+            }}
+            disabled={!selectedTopUser || !selectedBottomUser}
+          >
             Match! 💘
           </button>
         </div>
@@ -746,6 +833,76 @@ function Home({ user, authenticated }) {
                   ))}
                 </div>
               )}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Popup Modal */}
+      {showMatchPopup && (
+        <div className="info-popup-overlay" onClick={() => setShowMatchPopup(false)}>
+          <div className="info-popup match-popup" onClick={(e) => e.stopPropagation()}>
+            <button className="close-popup-btn" onClick={() => setShowMatchPopup(false)}>
+              ×
+            </button>
+            <div className="info-popup-content match-popup-content">
+              <h2 className="match-popup-title">
+                Match {selectedTopUser?.display_name || selectedTopUser?.username || 'Person'} with {selectedBottomUser?.display_name || selectedBottomUser?.username || 'Person'}
+              </h2>
+              
+              <div className="match-popup-profiles">
+                <div className="match-popup-profile">
+                  <ProfileCard profile={selectedTopUser} compact={true} />
+                </div>
+                
+                <div className="match-popup-button-container">
+                  <div className="match-deadline-selector">
+                    <label htmlFor="deadline-days">Response deadline:</label>
+                    <select 
+                      id="deadline-days"
+                      value={matchDeadlineDays}
+                      onChange={(e) => setMatchDeadlineDays(Number(e.target.value))}
+                      className="deadline-select"
+                    >
+                      {[1, 2, 3, 4, 5, 6, 7].map(days => (
+                        <option key={days} value={days}>
+                          {days} {days === 1 ? 'day' : 'days'}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <button 
+                    className="match-button match-popup-button" 
+                    onClick={handleMatchConfirm}
+                    disabled={matching}
+                  >
+                    {matching ? 'Matching...' : 'Match! 💘'}
+                  </button>
+                </div>
+                
+                <div className="match-popup-profile">
+                  <ProfileCard profile={selectedBottomUser} compact={true} />
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Match Success Popup Modal */}
+      {showMatchSuccessPopup && (
+        <div className="info-popup-overlay" onClick={() => setShowMatchSuccessPopup(false)}>
+          <div className="info-popup match-success-popup" onClick={(e) => e.stopPropagation()}>
+            <div className="match-success-content">
+              <div className="match-success-icon">💘</div>
+              <h2 className="match-success-title">You matched them!</h2>
+              <p className="match-success-message">Everyone will be notified</p>
+              <button 
+                className="match-success-button" 
+                onClick={() => setShowMatchSuccessPopup(false)}
+              >
+                Awesome!
+              </button>
             </div>
           </div>
         </div>
