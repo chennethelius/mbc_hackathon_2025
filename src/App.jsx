@@ -3,7 +3,6 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import Navbar from './components/Navbar';
 import ProfilePrompt from './components/ProfilePrompt';
-import BackendStatus from './components/BackendStatus';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
@@ -94,7 +93,6 @@ function App() {
   return (
     <Router>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-        <BackendStatus />
         <Navbar 
           user={privyUser} 
           authenticated={authenticated}

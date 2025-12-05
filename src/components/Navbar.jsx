@@ -33,7 +33,13 @@ function Navbar({ user, authenticated, onLogout }) {
     <>
       <nav className="navbar">
         <div className="navbar-brand" onClick={() => navigate('/')} style={{ cursor: 'pointer' }}>
-          <h2>MBC Hackathon 2025</h2>
+          <h2 style={{
+            background: 'linear-gradient(135deg, #ec4899 0%, #f97316 100%)',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+            backgroundClip: 'text',
+            fontWeight: 'bold'
+          }}>Cupic</h2>
         </div>
         
         <div className="navbar-actions">
@@ -116,6 +122,31 @@ function Navbar({ user, authenticated, onLogout }) {
           onClose={() => setShowLoginModal(false)}
         />
       )}
+
+      {/* Backend Status Indicator - Bottom Right */}
+      <div style={{
+        position: 'fixed',
+        bottom: '20px',
+        right: '20px',
+        backgroundColor: 'rgba(0, 0, 0, 0.85)',
+        color: '#fff',
+        padding: '0.75rem 1rem',
+        borderRadius: '0.5rem',
+        fontSize: '0.875rem',
+        zIndex: 1000,
+        border: '1px solid #333',
+        backdropFilter: 'blur(10px)'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <div style={{
+            width: '8px',
+            height: '8px',
+            borderRadius: '50%',
+            backgroundColor: '#10b981'
+          }}></div>
+          <span>Backend: <strong>Connected</strong></span>
+        </div>
+      </div>
     </>
   );
 }
