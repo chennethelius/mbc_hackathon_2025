@@ -3,11 +3,13 @@ import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
 import Navbar from './components/Navbar';
 import ProfilePrompt from './components/ProfilePrompt';
+import BackendStatus from './components/BackendStatus';
 import Home from './pages/Home';
 import Settings from './pages/Settings';
 import Wallet from './pages/Wallet';
 import Friends from './pages/Friends';
 import Profile from './pages/Profile';
+import Markets from './pages/Markets';
 import { syncPrivyUserToSupabase } from './services/userSync';
 import './App.css';
 
@@ -90,6 +92,7 @@ function App() {
   return (
     <Router>
       <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+        <BackendStatus />
         <Navbar 
           user={privyUser} 
           authenticated={authenticated}
@@ -98,6 +101,7 @@ function App() {
         
         <Routes>
           <Route path="/" element={<Home user={privyUser} authenticated={authenticated} />} />
+          <Route path="/markets" element={<Markets />} />
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/friends" element={<Friends />} />

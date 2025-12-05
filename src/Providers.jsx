@@ -1,4 +1,16 @@
 import { PrivyProvider } from '@privy-io/react-auth';
+import { WagmiProvider, createConfig, http } from 'wagmi';
+import { baseSepolia } from 'wagmi/chains';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+
+const config = createConfig({
+  chains: [baseSepolia],
+  transports: {
+    [baseSepolia.id]: http()
+  }
+});
+
+const queryClient = new QueryClient();
 
 export default function Providers({ children }) {
   return (
@@ -6,20 +18,22 @@ export default function Providers({ children }) {
       appId="cmirwdt0y00zwl80c56vebnmo"
       clientId="client-WY6TPZvXVRedfRU4zXLVPrYSAsSPA3u5ydQSsLKWJzJHS"
       config={{
-        // Customize the appearance
         appearance: {
           theme: 'light',
           accentColor: '#676FFF',
         },
-        // Specify login methods
         loginMethods: ['email'],
-        // Create embedded wallets for users who don't have a wallet
+        supportedChains: [baseSepolia],
         embeddedWallets: {
           createOnLogin: 'users-without-wallets'
         }
       }}
     >
-      {children}
+      <QueryClientProvider client={queryClient}>
+        <WagmiProvider config={config}>
+          {children}
+        </WagmiProvider>
+      </QueryClientProvider>
     </PrivyProvider>
   );
 }
