@@ -1,0 +1,10 @@
+{
+  "network": "baseSepolia",
+  "chainId": 84532,
+  "contracts": {
+    "mockUSDC": "0x537dab0C9d23d2cE30a5898E42C07b1840a227Df",
+    "marketFactory": "0x200aC27d73eDd6E469C842b7EFb60CFcf9059773"
+  },
+  "deployedAt": "2025-12-05T21:03:07.213Z",
+  "deployer": "0x1C8DD57B144d040194CA454b29Bca103D4e4617D"
+}

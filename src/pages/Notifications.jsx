@@ -12,6 +12,9 @@ function Notifications() {
   const [loading, setLoading] = useState(false);
   const [showProfilePopup, setShowProfilePopup] = useState(false);
   const [selectedProfile, setSelectedProfile] = useState(null);
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [selectedNotification, setSelectedNotification] = useState(null);
+  const [dateTime, setDateTime] = useState('');
 
   useEffect(() => {
     if (ready && !authenticated) {
@@ -97,15 +100,88 @@ function Notifications() {
   // Handle accept button (placeholder for now)
   const handleAccept = (e, notification) => {
     e.stopPropagation();
-    console.log('Accept match:', notification.id);
-    // TODO: Implement accept functionality
+    setSelectedNotification(notification);
+    setShowDatePicker(true);
+  };
+
+  // Submit acceptance with date/time
+  const submitAcceptance = async () => {
+    if (!dateTime || !selectedNotification) return;
+
+    if (!selectedNotification.proposal_id) {
+      alert('This notification is missing proposal data.\n\nThis is an old test notification.\nPlease create a new match proposal to test the accept flow.');
+      setShowDatePicker(false);
+      return;
+    }
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/match-proposals/${selectedNotification.proposal_id}/accept`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: privyUser?.id,
+          dateTime: dateTime
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove notification from list
+        setNotifications(prev => prev.filter(n => n.id !== selectedNotification.id));
+        setShowDatePicker(false);
+        setSelectedNotification(null);
+        setDateTime('');
+        alert('Match accepted! Market will be created.');
+      } else {
+        const errorMsg = result.error || 'Unknown error';
+        console.error('Backend error:', result);
+        alert(`Failed to accept match:\n\n${errorMsg}\n\n(Check browser console for details)`);
+      }
+    } catch (error) {
+      console.error('Error accepting match:', error);
+      let errorMessage = 'Failed to accept match.\n\n';
+      
+      if (error.message?.includes('fetch')) {
+        errorMessage += 'Cannot connect to backend server.\nMake sure the server is running on port 3001.';
+      } else if (error.message?.includes('API key')) {
+        errorMessage += 'Database authentication error (Invalid Supabase API key).\nThe backend cannot connect to the database.';
+      } else {
+        errorMessage += `Error: ${error.message}\n\nCheck browser console for details.`;
+      }
+      
+      alert(errorMessage);
+    }
   };
 
   // Handle reject button (placeholder for now)
-  const handleReject = (e, notification) => {
+  const handleReject = async (e, notification) => {
     e.stopPropagation();
-    console.log('Reject match:', notification.id);
-    // TODO: Implement reject functionality
+    
+    if (!confirm('Are you sure you want to reject this match?')) return;
+
+    try {
+      const response = await fetch(`http://localhost:3001/api/match-proposals/${notification.proposal_id}/reject`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          userId: privyUser?.id
+        })
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        // Remove notification from list
+        setNotifications(prev => prev.filter(n => n.id !== notification.id));
+        alert('Match rejected');
+      } else {
+        alert('Error: ' + result.error);
+      }
+    } catch (error) {
+      console.error('Error rejecting match:', error);
+      alert('Failed to reject match');
+    }
   };
 
   // Check if user is the matcher (not the matched person)
@@ -210,6 +286,70 @@ function Notifications() {
             </button>
             <div className="info-popup-content">
               <ProfileCard profile={selectedProfile} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Date Picker Modal */}
+      {showDatePicker && selectedNotification && (
+        <div className="info-popup-overlay" onClick={() => setShowDatePicker(false)}>
+          <div className="info-popup" onClick={(e) => e.stopPropagation()} style={{ maxWidth: '400px' }}>
+            <button className="close-popup-btn" onClick={() => setShowDatePicker(false)}>
+              ×
+            </button>
+            <div className="info-popup-content">
+              <h2 style={{ marginBottom: '20px' }}>Set Date Time</h2>
+              <p style={{ marginBottom: '15px', color: '#666' }}>
+                When is the date happening? This will be the betting deadline.
+              </p>
+              <input
+                type="datetime-local"
+                value={dateTime}
+                onChange={(e) => setDateTime(e.target.value)}
+                min={new Date().toISOString().slice(0, 16)}
+                style={{
+                  width: '100%',
+                  padding: '12px',
+                  fontSize: '16px',
+                  border: '1px solid #ddd',
+                  borderRadius: '8px',
+                  marginBottom: '20px'
+                }}
+              />
+              <div style={{ display: 'flex', gap: '10px' }}>
+                <button
+                  onClick={() => setShowDatePicker(false)}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    fontSize: '16px',
+                    border: '1px solid #ddd',
+                    borderRadius: '8px',
+                    background: 'white',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Cancel
+                </button>
+                <button
+                  onClick={submitAcceptance}
+                  disabled={!dateTime}
+                  style={{
+                    flex: 1,
+                    padding: '12px',
+                    fontSize: '16px',
+                    border: 'none',
+                    borderRadius: '8px',
+                    background: dateTime ? '#4CAF50' : '#ccc',
+                    color: 'white',
+                    cursor: dateTime ? 'pointer' : 'not-allowed',
+                    fontWeight: 'bold'
+                  }}
+                >
+                  Accept Match
+                </button>
+              </div>
             </div>
           </div>
         </div>
