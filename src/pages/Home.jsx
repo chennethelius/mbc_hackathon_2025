@@ -1,15 +1,21 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { usePrivy } from '@privy-io/react-auth';
+import { getVouchesGiven } from '../services/vouchService';
 import LoginModal from '../components/LoginModal';
 import './Home.css';
 
 function Home({ user, authenticated }) {
   const navigate = useNavigate();
+  const { user: privyUser } = usePrivy();
   const [showLoginModal, setShowLoginModal] = useState(false);
   const carouselRef = useRef(null);
   const [centerIndex, setCenterIndex] = useState(4); // Start with 5th card (index 4) centered
   const carousel2Ref = useRef(null);
   const [centerIndex2, setCenterIndex2] = useState(4); // Start with 5th card (index 4) centered
+  const [vouchedFriends, setVouchedFriends] = useState([]);
+  const [showInfoPopup, setShowInfoPopup] = useState(false);
+  const [selectedFriend, setSelectedFriend] = useState(null);
   
   // Create placeholder cards (you can replace with actual user data later)
   const originalCards = Array.from({ length: 10 }, (_, i) => ({
@@ -17,12 +23,57 @@ function Home({ user, authenticated }) {
     // Add your matchmaking data here later
   }));
 
+  // Load friends you've vouched for
+  useEffect(() => {
+    const loadVouchedFriends = async () => {
+      if (authenticated && privyUser?.id) {
+        console.log('🎯 Loading friends you\'ve vouched for...');
+        
+        const result = await getVouchesGiven(privyUser.id);
+        
+        if (result.success) {
+          // Filter to only include friends with points > 0
+          const friendsWithVouches = result.vouches.filter(v => v.points > 0);
+          console.log('✅ Loaded', friendsWithVouches.length, 'vouched friends');
+          setVouchedFriends(friendsWithVouches);
+        } else {
+          console.error('❌ Error loading vouched friends:', result.error);
+        }
+      }
+    };
+
+    loadVouchedFriends();
+  }, [authenticated, privyUser]);
+
+  // Create cards for bottom carousel - repeat single friend to fill 10 slots
+  const originalCards2 = Array.from({ length: 10 }, (_, i) => {
+    if (vouchedFriends.length > 0) {
+      // Use the first vouched friend for all cards
+      const friend = vouchedFriends[0];
+      return {
+        id: i,
+        name: friend.vouchee.display_name || friend.vouchee.username || 'Friend',
+      };
+    }
+    return {
+      id: i,
+      name: null,
+    };
+  });
+
   // Create infinite loop by duplicating cards: [clone of last 5] + [original 10] + [clone of first 5]
   const cloneCount = 5;
   const cards = [
     ...originalCards.slice(-cloneCount).map((card, i) => ({ ...card, key: `clone-end-${i}` })),
     ...originalCards.map((card, i) => ({ ...card, key: `original-${i}` })),
     ...originalCards.slice(0, cloneCount).map((card, i) => ({ ...card, key: `clone-start-${i}` })),
+  ];
+
+  // Create infinite loop for bottom carousel
+  const cards2 = [
+    ...originalCards2.slice(-cloneCount).map((card, i) => ({ ...card, key: `clone-end-${i}` })),
+    ...originalCards2.map((card, i) => ({ ...card, key: `original-${i}` })),
+    ...originalCards2.slice(0, cloneCount).map((card, i) => ({ ...card, key: `clone-start-${i}` })),
   ];
 
   // Initialize carousel position to center the 5th card (accounting for clones)
@@ -307,6 +358,18 @@ function Home({ user, authenticated }) {
     return 0.6; // Far cards
   };
 
+  // Handle info icon click
+  const handleInfoClick = (card) => {
+    setSelectedFriend(card);
+    setShowInfoPopup(true);
+  };
+
+  // Close popup
+  const closeInfoPopup = () => {
+    setShowInfoPopup(false);
+    setSelectedFriend(null);
+  };
+
   if (!authenticated) {
     return (
       <div className="home-page">
@@ -445,7 +508,7 @@ function Home({ user, authenticated }) {
         {/* Second Carousel */}
         <div className="carousel-container">
           <div className="carousel-wrapper" ref={carousel2Ref}>
-            {cards.map((card, index) => (
+            {cards2.map((card, index) => (
               <div
                 key={card.key}
                 className="carousel-card"
@@ -454,10 +517,22 @@ function Home({ user, authenticated }) {
                 }}
               >
                 <div className="card-content">
-                  {/* Placeholder content - replace with actual profile data */}
                   <div className="card-placeholder">
-                    <div className="placeholder-icon">💝</div>
-                    <h3>Profile {card.id + 1}</h3>
+                    <div className="name-with-info">
+                      <h3>{card.name || 'No vouches yet'}</h3>
+                      {card.name && (
+                        <button 
+                          className="info-icon-btn"
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleInfoClick(card);
+                          }}
+                          aria-label="More info"
+                        >
+                          <span className="info-icon">ⓘ</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -465,6 +540,21 @@ function Home({ user, authenticated }) {
           </div>
         </div>
       </div>
+
+      {/* Info Popup Modal */}
+      {showInfoPopup && (
+        <div className="info-popup-overlay" onClick={closeInfoPopup}>
+          <div className="info-popup" onClick={(e) => e.stopPropagation()}>
+            <button className="close-popup-btn" onClick={closeInfoPopup}>
+              ×
+            </button>
+            <div className="info-popup-content">
+              <h3>{selectedFriend?.name}</h3>
+              {/* Add more info content here later */}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
