@@ -45,7 +45,7 @@ function CountdownTimer({ targetTime }) {
   return <span>{timeLeft}</span>;
 }
 
-const MARKET_FACTORY_ADDRESS = '0xCa897F235F88316f03D34ecCC7701a4dA4a36895';
+const MARKET_FACTORY_ADDRESS = '0x200aC27d73eDd6E469C842b7EFb60CFcf9059773';
 const MARKET_FACTORY_ABI = [
   {
     "inputs": [],

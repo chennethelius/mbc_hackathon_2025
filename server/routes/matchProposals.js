@@ -156,7 +156,7 @@ router.post('/:proposalId/accept', async (req, res) => {
       });
     }
 
-    // Verify user is the matched person
+    // Verify user is one of the two people being matched
     const { data: proposal, error: fetchError } = await supabase
       .from('match_proposals')
       .select('*')
@@ -165,10 +165,11 @@ router.post('/:proposalId/accept', async (req, res) => {
 
     if (fetchError) throw fetchError;
 
-    if (proposal.matched_person_id !== userId) {
+    // Either the vouched friend OR the matched person can accept
+    if (proposal.vouched_friend_id !== userId && proposal.matched_person_id !== userId) {
       return res.status(403).json({
         success: false,
-        error: 'Only the matched person can accept this proposal'
+        error: 'Only one of the two matched people can accept this proposal'
       });
     }
 
@@ -204,16 +205,24 @@ router.post('/:proposalId/accept', async (req, res) => {
       // Continue even if vouchers fetch fails
     }
 
-    // Get wallet addresses for vouched friend and matched person
-    const { data: profiles } = await supabase
-      .from('profiles')
-      .select('id, wallet_address')
-      .in('id', [proposal.vouched_friend_id, proposal.matched_person_id]);
+    // Get wallet addresses for vouched friend and matched person from wallets table
+    const { data: wallets, error: walletsError } = await supabase
+      .from('wallets')
+      .select('user_id, wallet_address')
+      .in('user_id', [proposal.vouched_friend_id, proposal.matched_person_id]);
 
-    const vouchedFriendProfile = profiles?.find(p => p.id === proposal.vouched_friend_id);
-    const matchedPersonProfile = profiles?.find(p => p.id === proposal.matched_person_id);
+    if (walletsError) {
+      console.error('Error fetching wallets:', walletsError);
+      return res.status(500).json({
+        success: false,
+        error: 'Failed to fetch wallet addresses: ' + walletsError.message
+      });
+    }
 
-    if (!vouchedFriendProfile?.wallet_address || !matchedPersonProfile?.wallet_address) {
+    const vouchedFriendWallet = wallets?.find(w => w.user_id === proposal.vouched_friend_id);
+    const matchedPersonWallet = wallets?.find(w => w.user_id === proposal.matched_person_id);
+
+    if (!vouchedFriendWallet?.wallet_address || !matchedPersonWallet?.wallet_address) {
       return res.status(400).json({
         success: false,
         error: 'Vouched friend or matched person does not have a wallet address'
@@ -234,16 +243,16 @@ router.post('/:proposalId/accept', async (req, res) => {
         const resolutionTime = Math.floor(new Date(dateTime).getTime() / 1000);
         
         console.log('Creating market with:', {
-          vouchedFriend: vouchedFriendProfile.wallet_address,
-          matchedPerson: matchedPersonProfile.wallet_address,
+          vouchedFriend: vouchedFriendWallet.wallet_address,
+          matchedPerson: matchedPersonWallet.wallet_address,
           title: proposal.title,
           resolutionTime,
           bettorCount: eligibleBettors.length
         });
         
         const tx = await marketFactory.createMarketWithBettors(
-          vouchedFriendProfile.wallet_address,
-          matchedPersonProfile.wallet_address,
+          vouchedFriendWallet.wallet_address,
+          matchedPersonWallet.wallet_address,
           proposal.title,
           resolutionTime,
           eligibleBettors
