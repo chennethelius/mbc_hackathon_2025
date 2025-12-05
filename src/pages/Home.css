@@ -585,6 +585,24 @@
   height: 100%;
 }
 
+.matchmaking-content .carousel-container:last-child .card-content {
+  justify-content: center;
+}
+
+.matchmaking-content .carousel-container:last-child .card-placeholder {
+  padding: 0.5rem;
+  gap: 0;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.matchmaking-content .carousel-container:last-child .card-placeholder h3 {
+  font-size: 2rem;
+  margin: 0;
+}
+
 .carousel-wrapper {
   display: flex;
   gap: 2rem;
@@ -630,10 +648,11 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  justify-content: center;
+  justify-content: flex-start;
   position: relative;
   overflow: hidden;
   transition: box-shadow 0.3s ease;
+  padding: 0;
 }
 
 .card-content:hover {
@@ -672,6 +691,102 @@
   font-weight: 800;
   color: var(--text-primary);
   margin: 0;
+}
+
+/* Carousel Card Top Bar */
+.carousel-card-top-bar {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: var(--lavender);
+  border-bottom: 2px solid var(--text-primary);
+  text-align: left;
+  padding-right: 5px;
+  flex-shrink: 0;
+  height: 25%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  position: relative;
+}
+
+.vouch-text {
+  font-size: 1.6rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.4;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  width: 100%;
+  padding-left: 10px;
+}
+
+.vouch-text > div:first-child {
+  align-self: flex-start;
+  margin-left: 0;
+}
+
+.vouch-text > div:last-child {
+  align-self: flex-start;
+  margin-left: 2rem;
+}
+
+/* Vouches Count Badge */
+.vouches-count-badge {
+  position: absolute;
+  top: 0.5rem;
+  right: 15px;
+  background: var(--text-primary);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 2.5rem;
+  height: 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.9rem;
+  font-weight: 800;
+  cursor: pointer;
+  z-index: 10;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+  transition: transform 0.2s ease;
+  outline: none;
+}
+
+.vouches-count-badge:hover {
+  transform: scale(1.1);
+}
+
+.vouches-count-badge:focus,
+.vouches-count-badge:active {
+  outline: none;
+  box-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+/* Carousel Card Profile Container */
+.carousel-card-profile {
+  width: 100%;
+  height: 75%;
+  overflow-y: auto;
+  padding: 0.5rem;
+  display: flex;
+  align-items: flex-start;
+  justify-content: center;
+  flex-shrink: 0;
+  /* Hide scrollbar but keep scrolling functionality */
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE and Edge */
+}
+
+/* Disable scrolling on top carousel profile cards */
+.matchmaking-content .carousel-container:first-child .carousel-card-profile {
+  overflow-y: hidden;
+}
+
+.carousel-card-profile::-webkit-scrollbar {
+  display: none; /* Chrome, Safari, Opera */
 }
 
 /* Carousel Controls */
@@ -880,7 +995,7 @@
   background: white;
   border-radius: 20px;
   padding: 2rem;
-  min-width: 300px;
+  min-width: 320px;
   max-width: 500px;
   width: 90%;
   box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
@@ -931,5 +1046,85 @@
   color: var(--text-primary);
   font-size: 1.5rem;
   text-align: center;
+}
+
+/* Vouches Popup */
+.vouches-popup {
+  max-width: 600px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.vouches-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.5rem 0;
+}
+
+.vouch-item {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  padding: 1rem;
+  border: 2px solid var(--border-color);
+  transition: all 0.2s ease;
+}
+
+.vouch-item:hover {
+  border-color: var(--text-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.vouch-item-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.vouch-item-voucher {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex: 1;
+}
+
+.vouch-item-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 2px solid var(--border-color);
+}
+
+.vouch-item-avatar-placeholder {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: var(--text-primary);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 1.1rem;
+  border: 2px solid var(--border-color);
+}
+
+.vouch-item-name {
+  font-weight: 600;
+  color: var(--text-primary);
+  font-size: 1rem;
+}
+
+.vouch-item-points {
+  background: var(--text-primary);
+  color: white;
+  padding: 0.4rem 0.8rem;
+  border-radius: 20px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  white-space: nowrap;
 }
 

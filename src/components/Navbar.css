@@ -86,6 +86,25 @@
   }
 }
 
+.btn-notifications {
+  padding: 0.6rem 1.2rem;
+  border: 2px solid var(--text-primary);
+  border-radius: 12px;
+  cursor: pointer;
+  background: #FFF9C4;
+  color: var(--text-primary);
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.btn-notifications:hover {
+  background: #FFF8B0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
 .btn-wallet {
   padding: 0.6rem 1.2rem;
   border: 2px solid var(--text-primary);
@@ -190,6 +209,7 @@
 
   .btn-markets,
   .btn-friends-nav,
+  .btn-notifications,
   .btn-wallet {
     padding: 0.5rem 0.8rem;
     font-size: 0.85rem;

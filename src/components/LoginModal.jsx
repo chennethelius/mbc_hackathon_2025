@@ -18,20 +18,23 @@ function LoginModal({ onClose }) {
     }
   });
 
-  const isValidEduEmail = email.trim() === '' || email.toLowerCase().endsWith('.edu');
-  const showEmailError = emailTouched && email.trim() !== '' && !email.toLowerCase().endsWith('.edu');
+  // Commented out .edu validation - allowing any email for now
+  // const isValidEduEmail = email.trim() === '' || email.toLowerCase().endsWith('.edu');
+  // const showEmailError = emailTouched && email.trim() !== '' && !email.toLowerCase().endsWith('.edu');
+  const showEmailError = false; // Disabled for now - allowing any email
 
   const handleSendCode = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError('');
 
+    // Commented out .edu validation - allowing any email for now
     // Validate .edu email
-    if (!email.toLowerCase().endsWith('.edu')) {
-      setError('Please use a valid .edu email address');
-      setLoading(false);
-      return;
-    }
+    // if (!email.toLowerCase().endsWith('.edu')) {
+    //   setError('Please use a valid .edu email address');
+    //   setLoading(false);
+    //   return;
+    // }
 
     try {
       await sendCode({ email });

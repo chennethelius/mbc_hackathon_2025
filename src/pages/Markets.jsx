@@ -4,6 +4,7 @@ import { usePublicClient, useWalletClient } from 'wagmi';
 import { encodeFunctionData } from 'viem';
 import CreateMarket from '../components/CreateMarket';
 import { supabase } from '../services/supabase';
+import './Markets.css';
 
 // Countdown timer component
 function CountdownTimer({ targetTime }) {
@@ -340,243 +341,202 @@ export default function Markets() {
 
   if (!authenticated) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-600">Please login to view markets</p>
+      <div className="markets-page-loading">
+        <div className="loading-spinner">Please login to view markets</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50 py-8">
-      <div className="max-w-4xl mx-auto px-4">
-        <div className="flex justify-between items-center mb-8">
-          <div>
-            <h1 className="text-3xl font-bold">Dating Prediction Markets</h1>
-            <p className="text-sm text-gray-500 mt-1">
+    <div className="markets-page">
+      <div className="markets-container">
+        <div className="markets-header">
+          <div className="markets-header-left">
+            <h1>Dating Prediction Markets</h1>
+            <p className="markets-header-subtitle">
               Last updated: {new Date(lastUpdateTime).toLocaleTimeString()} • Auto-refreshes every 10s
             </p>
           </div>
-          <div className="flex gap-2">
+          <div className="markets-header-actions">
             <button 
               onClick={() => loadMarkets()}
-              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700"
+              className="btn-refresh"
             >
               🔄 Refresh
             </button>
             <button 
               onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+              className="btn-create"
             >
               + Create Bet
             </button>
           </div>
         </div>
 
-        {loading ? (
-          <div className="text-center py-12">
-            <p className="text-gray-600">Loading markets...</p>
-          </div>
-        ) : markets.length === 0 ? (
-          <div className="text-center py-12 bg-white rounded-lg shadow">
-            <p className="text-gray-600 mb-4">No bets yet!</p>
-            <button 
-              onClick={() => setShowCreateModal(true)}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700"
-            >
-              Create the First Bet
-            </button>
-          </div>
-        ) : (
-          <div style={{ maxWidth: '600px', margin: '0 auto' }}>
-            {markets.map((market) => {
-              const isCreator = user?.wallet?.address?.toLowerCase() === market.creator?.toLowerCase();
-              const isFriend1 = user?.wallet?.address?.toLowerCase() === market.friend1?.toLowerCase();
-              const isFriend2 = user?.wallet?.address?.toLowerCase() === market.friend2?.toLowerCase();
-              const canVote = (isFriend1 || isFriend2) && market.canResolve && !market.resolved;
-              const hasVoted = (isFriend1 && market.friend1HasVoted) || (isFriend2 && market.friend2HasVoted);
-              const isPastResolution = Date.now() >= market.resolutionTime.getTime();
-              
-              return (
-                <div key={market.address} style={{
-                  background: 'linear-gradient(135deg, #fafafa 0%, #ffffff 100%)',
-                  borderRadius: '8px',
-                  boxShadow: '0 2px 4px rgba(0,0,0,0.1)',
-                  padding: '1rem',
-                  marginBottom: '0.75rem',
-                  border: '2px solid #e5e7eb',
-                  position: 'relative',
-                  overflow: 'hidden'
-                }}>
-                  {/* Compact header stripe */}
-                  <div style={{
-                    position: 'absolute',
-                    top: 0,
-                    left: 0,
-                    right: 0,
-                    height: '4px',
-                    background: 'linear-gradient(90deg, #a855f7 0%, #ec4899 50%, #fb923c 100%)'
-                  }}></div>
-
-                  <div style={{ position: 'relative', marginTop: '0.25rem' }}>
-                    {/* Compact Title Row */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-                      <h3 style={{ fontSize: '1.1rem', fontWeight: 'bold', color: '#111827', margin: 0, flex: 1 }}>
-                        {market.title}
-                      </h3>
+        <div className="markets-content">
+          {loading ? (
+            <div className="loading-state">
+              Loading markets...
+            </div>
+          ) : markets.length === 0 ? (
+            <div className="empty-state">
+              <div className="empty-state-icon">💑</div>
+              <h3>No bets yet!</h3>
+              <p>Create the first prediction market and start betting on dates!</p>
+              <button 
+                onClick={() => setShowCreateModal(true)}
+                className="btn-create"
+              >
+                Create the First Bet
+              </button>
+            </div>
+          ) : (
+            <div className="markets-list">
+              {markets.map((market) => {
+                const isCreator = user?.wallet?.address?.toLowerCase() === market.creator?.toLowerCase();
+                const isFriend1 = user?.wallet?.address?.toLowerCase() === market.friend1?.toLowerCase();
+                const isFriend2 = user?.wallet?.address?.toLowerCase() === market.friend2?.toLowerCase();
+                const canVote = (isFriend1 || isFriend2) && market.canResolve && !market.resolved;
+                const hasVoted = (isFriend1 && market.friend1HasVoted) || (isFriend2 && market.friend2HasVoted);
+                const isPastResolution = Date.now() >= market.resolutionTime.getTime();
+                
+                return (
+                <div key={market.address} className="market-card">
+                  <div className="market-card-header-stripe"></div>
+                  
+                  <div className="market-card-content">
+                    <div className="market-card-header">
+                      <h3 className="market-title">{market.title}</h3>
                       {market.resolved ? (
-                        <span style={{
-                          background: '#dcfce7',
-                          color: '#166534',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold'
-                        }}>
+                        <span className="market-status-badge market-status-resolved">
                           ✓ {market.outcome ? 'YES' : 'NO'}
                         </span>
                       ) : isPastResolution ? (
-                        <span style={{
-                          background: '#fef3c7',
-                          color: '#92400e',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold'
-                        }}>
+                        <span className="market-status-badge market-status-pending">
                           {market.votesCount}/2
                         </span>
                       ) : (
-                        <span style={{
-                          background: '#dbeafe',
-                          color: '#1e40af',
-                          padding: '0.25rem 0.75rem',
-                          borderRadius: '12px',
-                          fontSize: '0.75rem',
-                          fontWeight: 'bold'
-                        }}>
+                        <span className="market-status-badge market-status-active">
                           ACTIVE
                         </span>
                       )}
                     </div>
 
-                    {/* Compact Parties & Pools */}
-                    <div style={{ marginBottom: '0.5rem' }}>
-                      {/* Participants */}
-                      <div style={{ background: '#faf5ff', padding: '0.5rem', borderRadius: '6px', border: '1px solid #e9d5ff', marginBottom: '0.5rem' }}>
-                        <div style={{ fontSize: '0.65rem', color: '#6b21a8', fontWeight: 'bold', marginBottom: '0.25rem' }}>💑 PARTICIPANTS</div>
-                        <div style={{ fontSize: '0.75rem', color: '#1f2937', fontWeight: '600' }}>
-                          {market.friend1Name} {isFriend1 && '(You)'}
-                        </div>
-                        <div style={{ fontSize: '0.75rem', color: '#1f2937', fontWeight: '600' }}>
-                          {market.friend2Name} {isFriend2 && '(You)'}
-                        </div>
-                        {(market.friend1HasVoted || market.friend2HasVoted) && (
-                          <div style={{ fontSize: '0.65rem', color: '#15803d', marginTop: '0.25rem' }}>
-                            {market.friend1HasVoted && `✓ ${market.friend1Name.split(' ')[0]}: ${market.friend1Vote ? 'YES' : 'NO'}`}
-                            {market.friend1HasVoted && market.friend2HasVoted && ' | '}
-                            {market.friend2HasVoted && `✓ ${market.friend2Name.split(' ')[0]}: ${market.friend2Vote ? 'YES' : 'NO'}`}
-                          </div>
-                        )}
+                    <div className="market-participants">
+                      <div className="participants-label">💑 PARTICIPANTS</div>
+                      <div className="participant-name">
+                        {market.friend1Name} {isFriend1 && '(You)'}
                       </div>
+                      <div className="participant-name">
+                        {market.friend2Name} {isFriend2 && '(You)'}
+                      </div>
+                      {(market.friend1HasVoted || market.friend2HasVoted) && (
+                        <div className="participant-votes">
+                          {market.friend1HasVoted && `✓ ${market.friend1Name.split(' ')[0]}: ${market.friend1Vote ? 'YES' : 'NO'}`}
+                          {market.friend1HasVoted && market.friend2HasVoted && ' | '}
+                          {market.friend2HasVoted && `✓ ${market.friend2Name.split(' ')[0]}: ${market.friend2Vote ? 'YES' : 'NO'}`}
+                        </div>
+                      )}
+                    </div>
 
-                      {/* Pools */}
-                      <div style={{ display: 'flex', gap: '0.5rem' }}>
-                        <div style={{ flex: 1, background: '#f0fdf4', padding: '0.5rem', borderRadius: '6px', border: '1px solid #86efac' }}>
-                          <div style={{ fontSize: '0.65rem', color: '#15803d', fontWeight: 'bold' }}>YES</div>
-                          <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#15803d' }}>{market.totalYesPool.toFixed(1)}</div>
-                          <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{market.yesOdds}%</div>
-                        </div>
-                        <div style={{ flex: 1, background: '#fef2f2', padding: '0.5rem', borderRadius: '6px', border: '1px solid #fca5a5' }}>
-                          <div style={{ fontSize: '0.65rem', color: '#b91c1c', fontWeight: 'bold' }}>NO</div>
-                          <div style={{ fontSize: '1rem', fontWeight: 'bold', color: '#b91c1c' }}>{market.totalNoPool.toFixed(1)}</div>
-                          <div style={{ fontSize: '0.65rem', color: '#6b7280' }}>{market.noOdds}%</div>
-                        </div>
+                    <div className="market-pools">
+                      <div className="pool-card pool-yes">
+                        <div className="pool-label pool-label-yes">YES</div>
+                        <div className="pool-amount pool-amount-yes">{market.totalYesPool.toFixed(1)}</div>
+                        <div className="pool-odds">{market.yesOdds}%</div>
+                      </div>
+                      <div className="pool-card pool-no">
+                        <div className="pool-label pool-label-no">NO</div>
+                        <div className="pool-amount pool-amount-no">{market.totalNoPool.toFixed(1)}</div>
+                        <div className="pool-odds">{market.noOdds}%</div>
                       </div>
                     </div>
 
-                    {/* Compact Time & Actions */}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.75rem', color: '#6b7280' }}>
-                      <div>
+                    <div className="market-footer">
+                      <div className="countdown-timer">
                         ⏰ <CountdownTimer targetTime={market.resolutionTime} />
                       </div>
-                      {isCreator && <div style={{ fontSize: '0.65rem', color: '#1d4ed8' }}>📝 You created</div>}
+                      {isCreator && <div className="creator-badge">📝 You created</div>}
                     </div>
                   </div>
 
-                  {/* Resolution controls for the two people in the date */}
-                  {canVote && !hasVoted && (
-                    <div className="mb-4 p-4 bg-blue-50 rounded-lg border border-blue-200">
-                      <p className="text-sm font-semibold text-blue-900 mb-1">
-                        ⏰ Time to vote on the outcome!
-                      </p>
-                      <p className="text-xs text-gray-600 mb-3">
-                        {market.votesCount === 0 && '0/2 votes - Both people in the date must vote and agree'}
-                        {market.votesCount === 1 && `1/2 votes - ${market.friend1HasVoted ? 'Friend 1' : 'Friend 2'} voted ${market.friend1HasVoted ? (market.friend1Vote ? 'YES' : 'NO') : (market.friend2Vote ? 'YES' : 'NO')}. You must vote the same to resolve!`}
-                        {market.votesCount === 2 && '2/2 votes received'}
-                      </p>
-                      <div className="flex gap-2">
-                        <button
-                          onClick={() => handleResolve(market, true)}
-                          disabled={resolvingMarket === market.address}
-                          className="flex-1 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {resolvingMarket === market.address ? 'Voting...' : 'Vote YES ✓'}
+                  <div className="market-actions">
+                    {/* Resolution controls for the two people in the date */}
+                    {canVote && !hasVoted && (
+                      <div className="voting-section">
+                        <p className="voting-section-title">
+                          ⏰ Time to vote on the outcome!
+                        </p>
+                        <p className="voting-section-description">
+                          {market.votesCount === 0 && '0/2 votes - Both people in the date must vote and agree'}
+                          {market.votesCount === 1 && `1/2 votes - ${market.friend1HasVoted ? 'Friend 1' : 'Friend 2'} voted ${market.friend1HasVoted ? (market.friend1Vote ? 'YES' : 'NO') : (market.friend2Vote ? 'YES' : 'NO')}. You must vote the same to resolve!`}
+                          {market.votesCount === 2 && '2/2 votes received'}
+                        </p>
+                        <div className="voting-buttons">
+                          <button
+                            onClick={() => handleResolve(market, true)}
+                            disabled={resolvingMarket === market.address}
+                            className="btn-vote btn-vote-yes"
+                          >
+                            {resolvingMarket === market.address ? 'Voting...' : 'Vote YES ✓'}
+                          </button>
+                          <button
+                            onClick={() => handleResolve(market, false)}
+                            disabled={resolvingMarket === market.address}
+                            className="btn-vote btn-vote-no"
+                          >
+                            {resolvingMarket === market.address ? 'Voting...' : 'Vote NO ✗'}
+                          </button>
+                        </div>
+                      </div>
+                    )}
+                    
+                    {hasVoted && !market.resolved && (
+                      <div className="voted-section">
+                        <p className="voted-section-text">
+                          ✅ You voted: <strong>{(isFriend1 && market.friend1Vote) || (isFriend2 && market.friend2Vote) ? 'YES' : 'NO'}</strong>
+                        </p>
+                        <p className="voted-section-waiting">
+                          Waiting for the other person to vote... ({market.votesCount}/2)
+                        </p>
+                      </div>
+                    )}
+
+                    {/* Betting controls for active markets */}
+                    {!market.resolved && !isPastResolution && (
+                      <div className="betting-actions">
+                        <button className="btn-bet btn-bet-yes">
+                          Bet YES
                         </button>
-                        <button
-                          onClick={() => handleResolve(market, false)}
-                          disabled={resolvingMarket === market.address}
-                          className="flex-1 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {resolvingMarket === market.address ? 'Voting...' : 'Vote NO ✗'}
+                        <button className="btn-bet btn-bet-no">
+                          Bet NO
                         </button>
                       </div>
-                    </div>
-                  )}
-                  
-                  {hasVoted && !market.resolved && (
-                    <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
-                      <p className="text-sm text-gray-700">
-                        ✅ You voted: <strong>{(isFriend1 && market.friend1Vote) || (isFriend2 && market.friend2Vote) ? 'YES' : 'NO'}</strong>
-                      </p>
-                      <p className="text-xs text-gray-500 mt-1">
-                        Waiting for the other person to vote... ({market.votesCount}/2)
-                      </p>
-                    </div>
-                  )}
+                    )}
 
-                  {/* Betting controls for active markets */}
-                  {!market.resolved && !isPastResolution && (
-                    <div className="flex justify-end space-x-2">
-                      <button className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 font-medium">
-                        Bet YES
-                      </button>
-                      <button className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 font-medium">
-                        Bet NO
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Claim winnings for resolved markets */}
-                  {market.resolved && (
-                    <div className="flex justify-end">
-                      <button className="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium">
-                        Claim Winnings
-                      </button>
-                    </div>
-                  )}
+                    {/* Claim winnings for resolved markets */}
+                    {market.resolved && (
+                      <div className="betting-actions">
+                        <button className="btn-claim">
+                          Claim Winnings
+                        </button>
+                      </div>
+                    )}
+                  </div>
                 </div>
               );
-            })}
-          </div>
-        )}
-
-        {showCreateModal && (
-          <CreateMarket 
-            onClose={() => setShowCreateModal(false)}
-            onSuccess={loadMarkets}
-          />
-        )}
+              })}
+            </div>
+          )}
+        </div>
       </div>
+
+      {showCreateModal && (
+        <CreateMarket 
+          onClose={() => setShowCreateModal(false)}
+          onSuccess={loadMarkets}
+        />
+      )}
     </div>
   );
 }

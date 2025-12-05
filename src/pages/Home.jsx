@@ -1,8 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePrivy } from '@privy-io/react-auth';
-import { getVouchesGiven } from '../services/vouchService';
+import { getVouchesGiven, getVouchesReceived, getOtherVouches } from '../services/vouchService';
+import { fetchUserProfile } from '../services/userSync';
 import LoginModal from '../components/LoginModal';
+import ProfileCard from '../components/ProfileCard';
 import './Home.css';
 
 function Home({ user, authenticated }) {
@@ -13,17 +15,31 @@ function Home({ user, authenticated }) {
   const [centerIndex, setCenterIndex] = useState(4); // Start with 5th card (index 4) centered
   const carousel2Ref = useRef(null);
   const [centerIndex2, setCenterIndex2] = useState(4); // Start with 5th card (index 4) centered
-  const [vouchedFriends, setVouchedFriends] = useState([]);
+  const [vouchedFriends, setVouchedFriends] = useState([]); // People I've vouched for
+  const [otherVouches, setOtherVouches] = useState([]); // Vouches not involving me (for top carousel)
   const [showInfoPopup, setShowInfoPopup] = useState(false);
   const [selectedFriend, setSelectedFriend] = useState(null);
+  const [currentUserProfile, setCurrentUserProfile] = useState(null);
+  const [vouchesCounts, setVouchesCounts] = useState({}); // Map of profileId -> total vouches count
+  const [showVouchesPopup, setShowVouchesPopup] = useState(false);
+  const [selectedProfileForVouches, setSelectedProfileForVouches] = useState(null);
+  const [vouchesList, setVouchesList] = useState([]);
   
-  // Create placeholder cards (you can replace with actual user data later)
-  const originalCards = Array.from({ length: 10 }, (_, i) => ({
-    id: i,
-    // Add your matchmaking data here later
-  }));
+  // Load current user's profile
+  useEffect(() => {
+    const loadCurrentUserProfile = async () => {
+      if (authenticated && privyUser?.id) {
+        const result = await fetchUserProfile(privyUser.id);
+        if (result.success && result.user?.profiles) {
+          setCurrentUserProfile(result.user.profiles);
+        }
+      }
+    };
+    
+    loadCurrentUserProfile();
+  }, [authenticated, privyUser]);
 
-  // Load friends you've vouched for
+  // Load friends you've vouched for (for bottom carousel)
   useEffect(() => {
     const loadVouchedFriends = async () => {
       if (authenticated && privyUser?.id) {
@@ -45,19 +61,98 @@ function Home({ user, authenticated }) {
     loadVouchedFriends();
   }, [authenticated, privyUser]);
 
-  // Create cards for bottom carousel - repeat single friend to fill 10 slots
+  // Load vouches not involving the current user (for top carousel)
+  useEffect(() => {
+    const loadOtherVouches = async () => {
+      if (authenticated && privyUser?.id) {
+        console.log('🎯 Loading other vouches (not involving me)...');
+        
+        const result = await getOtherVouches(privyUser.id);
+        
+        if (result.success) {
+          console.log('✅ Loaded', result.vouches.length, 'other vouches');
+          setOtherVouches(result.vouches || []);
+        } else {
+          console.error('❌ Error loading other vouches:', result.error);
+        }
+      }
+    };
+
+    loadOtherVouches();
+  }, [authenticated, privyUser]);
+
+  // Load total vouches counts for profiles in both carousels
+  useEffect(() => {
+    const loadVouchesCounts = async () => {
+      const counts = {};
+      
+      // Get unique profile IDs from top carousel (vouchee profiles - people being vouched for)
+      const topCarouselProfileIds = [...new Set(otherVouches.map(v => v.vouchee?.id).filter(Boolean))];
+      
+      // Get unique profile IDs from bottom carousel (people I've vouched for - vouchee profiles)
+      const bottomCarouselProfileIds = [...new Set(vouchedFriends.map(f => f.vouchee?.id).filter(Boolean))];
+      
+      // Combine and deduplicate
+      const uniqueProfileIds = [...new Set([...topCarouselProfileIds, ...bottomCarouselProfileIds])];
+      
+      if (uniqueProfileIds.length === 0) return;
+      
+      await Promise.all(
+        uniqueProfileIds.map(async (profileId) => {
+          const result = await getVouchesReceived(profileId);
+          if (result.success) {
+            counts[profileId] = result.vouches?.length || 0;
+          } else {
+            counts[profileId] = 0;
+          }
+        })
+      );
+
+      setVouchesCounts(counts);
+    };
+
+    loadVouchesCounts();
+  }, [otherVouches, vouchedFriends]);
+
+  // Create cards for top carousel - use vouches not involving me
+  const originalCards = Array.from({ length: 10 }, (_, i) => {
+    if (otherVouches.length > 0) {
+      // Cycle through vouches not involving me (show the vouchee - person being vouched for)
+      const vouch = otherVouches[i % otherVouches.length];
+      return {
+        id: i,
+        vouch: vouch,
+        profile: vouch.vouchee, // The person being vouched for
+        voucher: vouch.voucher, // The person who vouched for them
+        points: vouch.points,
+      };
+    }
+    return {
+      id: i,
+      vouch: null,
+      profile: null,
+      voucher: null,
+      points: 0,
+    };
+  });
+
+  // Create cards for bottom carousel - cycle through people I've vouched for
   const originalCards2 = Array.from({ length: 10 }, (_, i) => {
     if (vouchedFriends.length > 0) {
-      // Use the first vouched friend for all cards
-      const friend = vouchedFriends[0];
+      // Cycle through people I've vouched for
+      const friend = vouchedFriends[i % vouchedFriends.length];
       return {
         id: i,
         name: friend.vouchee.display_name || friend.vouchee.username || 'Friend',
+        profile: friend.vouchee, // Include full profile data
+        vouch: friend,
       };
     }
     return {
       id: i,
       name: null,
+      profile: null,
+      vouch: null,
     };
   });
 
@@ -370,6 +465,34 @@ function Home({ user, authenticated }) {
     setSelectedFriend(null);
   };
 
+  // Handle vouches count badge click
+  const handleVouchesBadgeClick = async (profile) => {
+    if (!profile?.id) return;
+    
+    setSelectedProfileForVouches(profile);
+    setShowVouchesPopup(true);
+    
+    // Fetch vouches received for this profile
+    const result = await getVouchesReceived(profile.id);
+    if (result.success) {
+      // Filter out the current user's vouch to show only "other vouches"
+      const otherVouches = (result.vouches || []).filter(
+        vouch => vouch.voucher?.id !== privyUser?.id
+      );
+      setVouchesList(otherVouches);
+    } else {
+      console.error('Error loading vouches:', result.error);
+      setVouchesList([]);
+    }
+  };
+
+  // Close vouches popup
+  const closeVouchesPopup = () => {
+    setShowVouchesPopup(false);
+    setSelectedProfileForVouches(null);
+    setVouchesList([]);
+  };
+
   if (!authenticated) {
     return (
       <div className="home-page">
@@ -487,11 +610,35 @@ function Home({ user, authenticated }) {
                 }}
               >
                 <div className="card-content">
-                  {/* Placeholder content - replace with actual profile data */}
-                  <div className="card-placeholder">
-                    <div className="placeholder-icon">💝</div>
-                    <h3>Profile {card.id + 1}</h3>
-                  </div>
+                  {card.profile ? (
+                    <>
+                      <div className="carousel-card-top-bar">
+                        <span className="vouch-text">
+                          <div>{card.voucher?.display_name || card.voucher?.username || 'Someone'}</div>
+                          <div>vouched for ...</div>
+                        </span>
+                        {vouchesCounts[card.profile.id] !== undefined && vouchesCounts[card.profile.id] > 1 && (
+                          <button 
+                            className="vouches-count-badge"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleVouchesBadgeClick(card.profile);
+                            }}
+                          >
+                            +{vouchesCounts[card.profile.id] - 1}
+                          </button>
+                        )}
+                      </div>
+                      <div className="carousel-card-profile">
+                        <ProfileCard profile={card.profile} compact={true} />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="card-placeholder">
+                      <div className="placeholder-icon">💝</div>
+                      <h3>No vouches yet</h3>
+                    </div>
+                  )}
                 </div>
               </div>
             ))}
@@ -549,8 +696,56 @@ function Home({ user, authenticated }) {
               ×
             </button>
             <div className="info-popup-content">
-              <h3>{selectedFriend?.name}</h3>
-              {/* Add more info content here later */}
+              <ProfileCard profile={selectedFriend?.profile} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Vouches Popup Modal */}
+      {showVouchesPopup && (
+        <div className="info-popup-overlay" onClick={closeVouchesPopup}>
+          <div className="info-popup vouches-popup" onClick={(e) => e.stopPropagation()}>
+            <button className="close-popup-btn" onClick={closeVouchesPopup}>
+              ×
+            </button>
+            <div className="info-popup-content">
+              <h3>
+                {selectedProfileForVouches?.display_name || selectedProfileForVouches?.username || 'User'}'s Vouches
+              </h3>
+              {vouchesList.length === 0 ? (
+                <p style={{ textAlign: 'center', color: 'var(--text-secondary)', padding: '2rem 0' }}>
+                  No other vouches yet.
+                </p>
+              ) : (
+                <div className="vouches-list">
+                  {vouchesList.map((vouch) => (
+                    <div key={vouch.id} className="vouch-item">
+                      <div className="vouch-item-header">
+                        <div className="vouch-item-voucher">
+                          {vouch.voucher?.avatar_url ? (
+                            <img 
+                              src={vouch.voucher.avatar_url} 
+                              alt={vouch.voucher.display_name || vouch.voucher.username || 'User'}
+                              className="vouch-item-avatar"
+                            />
+                          ) : (
+                            <div className="vouch-item-avatar-placeholder">
+                              {(vouch.voucher?.display_name || vouch.voucher?.username || 'U')[0].toUpperCase()}
+                            </div>
+                          )}
+                          <span className="vouch-item-name">
+                            {vouch.voucher?.display_name || vouch.voucher?.username || 'Unknown User'}
+                          </span>
+                        </div>
+                        <div className="vouch-item-points">
+                          {vouch.points} {vouch.points === 1 ? 'point' : 'points'}
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         </div>

@@ -11,6 +11,7 @@ import Friends from './pages/Friends';
 import Profile from './pages/Profile';
 import Markets from './pages/Markets';
 import Contracts from './pages/Contracts';
+import Notifications from './pages/Notifications';
 import { syncPrivyUserToSupabase } from './services/userSync';
 import './App.css';
 
@@ -107,6 +108,7 @@ function App() {
           <Route path="/settings" element={<Settings />} />
           <Route path="/wallet" element={<Wallet />} />
           <Route path="/friends" element={<Friends />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="/profile/:userId" element={<Profile />} />
         </Routes>
 

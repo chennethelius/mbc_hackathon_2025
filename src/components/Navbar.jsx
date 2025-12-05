@@ -43,7 +43,6 @@ function Navbar({ user, authenticated, onLogout }) {
                 onClick={() => navigate('/markets')} 
                 className="btn-markets"
               >
-                <span style={{ marginRight: '0.4rem' }}>📈</span>
                 Markets
               </button>
               
@@ -51,7 +50,6 @@ function Navbar({ user, authenticated, onLogout }) {
                 onClick={() => navigate('/friends')} 
                 className="btn-friends-nav"
               >
-                <span style={{ marginRight: '0.4rem' }}>👥</span>
                 Friends
                 {pendingRequestsCount > 0 && (
                   <span className="notification-badge">{pendingRequestsCount}</span>
@@ -59,10 +57,16 @@ function Navbar({ user, authenticated, onLogout }) {
               </button>
               
               <button 
+                onClick={() => navigate('/notifications')} 
+                className="btn-notifications"
+              >
+                Notifications
+              </button>
+              
+              <button 
                 onClick={() => navigate('/wallet')} 
                 className="btn-wallet"
               >
-                <span style={{ marginRight: '0.4rem' }}>💼</span>
                 Wallet
               </button>
               

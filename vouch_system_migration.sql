@@ -62,6 +62,7 @@ CREATE INDEX IF NOT EXISTS idx_vouch_history_created ON vouch_history(created_at
 -- =============================================
 
 -- Function to initialize vouch stats for a new user
+-- SECURITY DEFINER allows this function to bypass RLS when called by triggers
 CREATE OR REPLACE FUNCTION initialize_user_vouch_stats(p_user_id TEXT)
 RETURNS void AS $$
 BEGIN
@@ -69,7 +70,7 @@ BEGIN
   VALUES (p_user_id, 20.0, 20.0, 3.0, 0.0, 0.0, 0)
   ON CONFLICT (user_id) DO NOTHING;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to calculate initial budget based on friend count
 CREATE OR REPLACE FUNCTION calculate_initial_budget(p_user_id TEXT)
@@ -101,6 +102,7 @@ END;
 $$ LANGUAGE plpgsql;
 
 -- Function to recalculate vouch score for a user
+-- SECURITY DEFINER allows this function to bypass RLS when called by triggers
 CREATE OR REPLACE FUNCTION recalculate_vouch_score(p_user_id TEXT)
 RETURNS void AS $$
 DECLARE
@@ -123,9 +125,10 @@ BEGIN
     updated_at = NOW()
   WHERE user_id = p_user_id;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- Function to update vouch budget when friend count changes
+-- SECURITY DEFINER allows this trigger function to bypass RLS
 CREATE OR REPLACE FUNCTION update_vouch_budget_on_friendship()
 RETURNS TRIGGER AS $$
 DECLARE
@@ -179,7 +182,7 @@ BEGIN
   
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 -- =============================================
 -- 4. CREATE TRIGGERS
@@ -193,6 +196,7 @@ CREATE TRIGGER update_vouch_budgets_on_friendship
   EXECUTE FUNCTION update_vouch_budget_on_friendship();
 
 -- Trigger to recalculate vouch scores when vouches change
+-- SECURITY DEFINER allows this trigger function to bypass RLS
 CREATE OR REPLACE FUNCTION trigger_recalculate_vouch_score()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -203,7 +207,7 @@ BEGIN
   END IF;
   RETURN NEW;
 END;
-$$ LANGUAGE plpgsql;
+$$ LANGUAGE plpgsql SECURITY DEFINER;
 
 DROP TRIGGER IF EXISTS recalc_vouch_score_on_vouch_change ON vouches;
 CREATE TRIGGER recalc_vouch_score_on_vouch_change
@@ -221,32 +225,44 @@ ALTER TABLE vouches ENABLE ROW LEVEL SECURITY;
 ALTER TABLE vouch_history ENABLE ROW LEVEL SECURITY;
 
 -- User vouch stats: users can read anyone's stats, but only update their own
+DROP POLICY IF EXISTS "Anyone can view vouch stats" ON user_vouch_stats;
 CREATE POLICY "Anyone can view vouch stats"
   ON user_vouch_stats FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can insert their own vouch stats" ON user_vouch_stats;
+CREATE POLICY "Users can insert their own vouch stats"
+  ON user_vouch_stats FOR INSERT
+  WITH CHECK (true); -- Allows trigger to initialize stats when friendships are created
+
+DROP POLICY IF EXISTS "Users can update their own vouch stats" ON user_vouch_stats;
 CREATE POLICY "Users can update their own vouch stats"
   ON user_vouch_stats FOR UPDATE
   USING (true); -- Will be validated in application layer
 
 -- Vouches: users can read all vouches, but only manage their own given vouches
+DROP POLICY IF EXISTS "Anyone can view vouches" ON vouches;
 CREATE POLICY "Anyone can view vouches"
   ON vouches FOR SELECT
   USING (true);
 
+DROP POLICY IF EXISTS "Users can create their own vouches" ON vouches;
 CREATE POLICY "Users can create their own vouches"
   ON vouches FOR INSERT
   WITH CHECK (true); -- Will be validated in application layer
 
+DROP POLICY IF EXISTS "Users can update their own vouches" ON vouches;
 CREATE POLICY "Users can update their own vouches"
   ON vouches FOR UPDATE
   USING (true); -- Will be validated in application layer
 
+DROP POLICY IF EXISTS "Users can delete their own vouches" ON vouches;
 CREATE POLICY "Users can delete their own vouches"
   ON vouches FOR DELETE
   USING (true); -- Will be validated in application layer
 
 -- Vouch history: users can read their own history
+DROP POLICY IF EXISTS "Users can view their own vouch history" ON vouch_history;
 CREATE POLICY "Users can view their own vouch history"
   ON vouch_history FOR SELECT
   USING (true);

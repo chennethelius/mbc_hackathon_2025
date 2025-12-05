@@ -132,7 +132,10 @@ export async function getVouchesGiven(userId) {
           display_name,
           email,
           avatar_url,
-          photos
+          photos,
+          age,
+          university,
+          interests
         )
       `)
       .eq('voucher_id', userId)
@@ -186,6 +189,61 @@ export async function getVouchesReceived(userId) {
     return { success: true, vouches: data || [] };
   } catch (error) {
     console.error('❌ Exception getting vouches received:', error);
+    return { success: false, error: error.message };
+  }
+}
+
+/**
+ * Get all vouches that don't involve the current user (neither as voucher nor vouchee)
+ * @param {string} userId - Current user's ID (to exclude)
+ * @returns {Promise<{success: boolean, vouches?: Array, error?: string}>}
+ */
+export async function getOtherVouches(userId) {
+  try {
+    console.log('🎯 Getting vouches not involving user:', userId);
+
+    const { data, error } = await supabase
+      .from('vouches')
+      .select(`
+        *,
+        voucher:profiles!vouches_voucher_id_fkey(
+          id,
+          username,
+          display_name,
+          email,
+          avatar_url,
+          photos,
+          age,
+          university,
+          interests
+        ),
+        vouchee:profiles!vouches_vouchee_id_fkey(
+          id,
+          username,
+          display_name,
+          email,
+          avatar_url,
+          photos,
+          age,
+          university,
+          interests
+        )
+      `)
+      .neq('voucher_id', userId)
+      .neq('vouchee_id', userId)
+      .gt('points', 0)
+      .order('updated_at', { ascending: false })
+      .limit(100); // Limit to prevent too much data
+
+    if (error) {
+      console.error('❌ Error getting other vouches:', error);
+      return { success: false, error: error.message };
+    }
+
+    console.log('✅ Found', data?.length || 0, 'vouches not involving user');
+    return { success: true, vouches: data || [] };
+  } catch (error) {
+    console.error('❌ Exception getting other vouches:', error);
     return { success: false, error: error.message };
   }
 }
