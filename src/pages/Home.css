@@ -1,43 +1,298 @@
 .home-page {
-  min-height: 100vh;
+  min-height: calc(100vh - 70px); /* Account for navbar height */
+  position: relative;
+  overflow-x: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  flex: 1;
 }
 
-.hero-section {
+/* Animated Pastel Background */
+.animated-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1; /* Keep behind all content including navbar */
+  background: linear-gradient(135deg, #FFF8E1 0%, #FFE4F0 50%, #E0F4FF 100%);
+  overflow: hidden;
+}
+
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(60px);
+  opacity: 0.5;
+  animation: float 20s infinite ease-in-out;
+}
+
+.blob-1 {
+  width: 400px;
+  height: 400px;
+  background: var(--lavender);
+  top: -10%;
+  left: -10%;
+  animation-delay: 0s;
+}
+
+.blob-2 {
+  width: 500px;
+  height: 500px;
+  background: var(--mint-green);
+  top: 50%;
+  right: -15%;
+  animation-delay: -5s;
+}
+
+.blob-3 {
+  width: 350px;
+  height: 350px;
+  background: var(--pink);
+  bottom: -10%;
+  left: 20%;
+  animation-delay: -10s;
+}
+
+.blob-4 {
+  width: 300px;
+  height: 300px;
+  background: var(--sky-blue);
+  top: 30%;
+  left: 40%;
+  animation-delay: -15s;
+}
+
+.blob-5 {
+  width: 450px;
+  height: 450px;
+  background: var(--peach);
+  bottom: 20%;
+  right: 10%;
+  animation-delay: -7s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  25% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+  50% {
+    transform: translate(-20px, -30px) scale(0.9);
+  }
+  75% {
+    transform: translate(40px, 20px) scale(1.05);
+  }
+}
+
+/* Content Container */
+.hero-content {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 1400px;
+  padding: 4rem 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4rem;
+}
+
+/* Hero Header */
+.hero-header {
   text-align: center;
-  color: white;
-  padding: 2rem;
+  max-width: 800px;
 }
 
-.hero-section h1 {
-  font-size: 3rem;
-  margin-bottom: 1rem;
-  font-weight: bold;
+.hero-title {
+  font-size: 4rem;
+  font-weight: 900;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  line-height: 1.1;
+  letter-spacing: -0.03em;
 }
 
-.hero-section p {
+.hero-subtitle {
   font-size: 1.5rem;
-  margin-bottom: 2rem;
-  opacity: 0.9;
+  color: var(--text-secondary);
+  margin-bottom: 2.5rem;
+  line-height: 1.6;
 }
 
 .cta-button {
   display: inline-block;
-  background: white;
-  color: #667eea;
-  padding: 1rem 2rem;
-  border-radius: 8px;
-  text-decoration: none;
-  font-weight: 600;
-  font-size: 1.1rem;
-  transition: transform 0.2s;
+  background: var(--mint-green);
+  color: var(--text-primary);
+  padding: 1.2rem 3rem;
+  border-radius: var(--border-radius-lg);
+  border: 3px solid var(--text-primary);
+  font-weight: 800;
+  font-size: 1.3rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 4px 4px 0 var(--text-primary);
 }
 
 .cta-button:hover {
-  transform: scale(1.05);
+  transform: translate(-2px, -2px);
+  box-shadow: 6px 6px 0 var(--text-primary);
+}
+
+.cta-button:active {
+  transform: translate(2px, 2px);
+  box-shadow: 2px 2px 0 var(--text-primary);
+}
+
+.cta-button.secondary {
+  background: var(--lavender);
+}
+
+/* Feature Panels Grid - Bento Box Style */
+.feature-panels {
+  width: 100%;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  grid-template-rows: repeat(4, 180px);
+  gap: 1.5rem;
+  margin: 2rem 0;
+}
+
+/* Define unique sizes and positions for each card */
+.feature-card.card-1 {
+  grid-column: 1 / 3;
+  grid-row: 1 / 3;
+}
+
+.feature-card.card-2 {
+  grid-column: 3 / 5;
+  grid-row: 1 / 3;
+}
+
+.feature-card.card-3 {
+  grid-column: 5 / 7;
+  grid-row: 1 / 3;
+}
+
+.feature-card.card-4 {
+  grid-column: 1 / 3;
+  grid-row: 3 / 5;
+}
+
+.feature-card.card-5 {
+  grid-column: 3 / 5;
+  grid-row: 3 / 5;
+}
+
+.feature-card.card-6 {
+  grid-column: 5 / 7;
+  grid-row: 3 / 5;
+}
+
+.feature-card {
+  background: white;
+  padding: 2.5rem;
+  border-radius: var(--border-radius-xl);
+  border: 3px solid var(--text-primary);
+  box-shadow: 6px 6px 0 var(--text-primary);
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.feature-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 6px;
+  transition: height 0.3s ease;
+}
+
+.feature-card.card-1::before { background: var(--lavender); }
+.feature-card.card-2::before { background: var(--mint-green); }
+.feature-card.card-3::before { background: var(--pink); }
+.feature-card.card-4::before { background: var(--sky-blue); }
+.feature-card.card-5::before { background: var(--peach); }
+.feature-card.card-6::before { background: var(--purple); }
+
+.feature-card:hover {
+  transform: translate(-4px, -4px);
+  box-shadow: 10px 10px 0 var(--text-primary);
+}
+
+.feature-card:hover::before {
+  height: 100%;
+  opacity: 0.1;
+}
+
+.feature-icon {
+  font-size: 4rem;
+  margin-bottom: 1.5rem;
+  display: inline-block;
+  animation: bounce 2s infinite;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+}
+
+.feature-card:hover .feature-icon {
+  animation: spin 0.6s ease;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg) scale(1);
+  }
+  50% {
+    transform: rotate(180deg) scale(1.2);
+  }
+  100% {
+    transform: rotate(360deg) scale(1);
+  }
+}
+
+.feature-card h3 {
+  font-size: 1.75rem;
+  font-weight: 800;
+  margin-bottom: 1rem;
+  color: var(--text-primary);
+  line-height: 1.3;
+}
+
+.feature-card p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* Footer CTA */
+.footer-cta {
+  text-align: center;
+  padding: 3rem 2rem;
+  max-width: 700px;
+  margin-top: 2rem;
+}
+
+.footer-cta h2 {
+  font-size: 2.5rem;
+  font-weight: 800;
+  margin-bottom: 2rem;
+  color: var(--text-primary);
 }
 
 .login-prompt {
@@ -128,7 +383,110 @@
   font-style: italic;
 }
 
+/* Tablet Responsive */
+@media (max-width: 1024px) {
+  .feature-panels {
+    grid-template-columns: repeat(4, 1fr);
+    grid-template-rows: repeat(6, 160px);
+  }
+
+  .feature-card.card-1 {
+    grid-column: 1 / 3;
+    grid-row: 1 / 3;
+  }
+
+  .feature-card.card-2 {
+    grid-column: 3 / 5;
+    grid-row: 1 / 3;
+  }
+
+  .feature-card.card-3 {
+    grid-column: 1 / 3;
+    grid-row: 3 / 5;
+  }
+
+  .feature-card.card-4 {
+    grid-column: 3 / 5;
+    grid-row: 3 / 5;
+  }
+
+  .feature-card.card-5 {
+    grid-column: 1 / 3;
+    grid-row: 5 / 7;
+  }
+
+  .feature-card.card-6 {
+    grid-column: 3 / 5;
+    grid-row: 5 / 7;
+  }
+
+  .feature-card {
+    padding: 2rem;
+  }
+}
+
+/* Mobile Responsive */
 @media (max-width: 768px) {
+  .hero-content {
+    padding: 2rem 1rem;
+    gap: 2rem;
+  }
+
+  .hero-title {
+    font-size: 2.5rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1.2rem;
+  }
+
+  .cta-button {
+    font-size: 1.1rem;
+    padding: 1rem 2rem;
+  }
+
+  .feature-panels {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto;
+    gap: 1.5rem;
+  }
+
+  /* Reset all cards to single column on mobile */
+  .feature-card.card-1,
+  .feature-card.card-2,
+  .feature-card.card-3,
+  .feature-card.card-4,
+  .feature-card.card-5,
+  .feature-card.card-6 {
+    grid-column: 1;
+    grid-row: auto;
+  }
+
+  .feature-card {
+    padding: 2rem;
+    min-height: 200px;
+  }
+
+  .feature-card h3 {
+    font-size: 1.5rem;
+  }
+
+  .feature-card p {
+    font-size: 1rem;
+  }
+
+  .feature-icon {
+    font-size: 3rem;
+  }
+
+  .footer-cta h2 {
+    font-size: 2rem;
+  }
+
+  .blob {
+    filter: blur(40px);
+  }
+
   .welcome-section {
     padding: 2rem;
   }
@@ -137,12 +495,26 @@
     font-size: 2rem;
   }
 
-  .home-page {
-    padding: 1rem;
-  }
-
   .success-text {
     font-size: 1rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .hero-title {
+    font-size: 2rem;
+  }
+
+  .hero-subtitle {
+    font-size: 1rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+  }
+
+  .footer-cta {
+    padding: 2rem 1rem;
   }
 }
 
